@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <array name="select">
+        <item>@string/first_label</item>
+        <item>@string/second_label</item>
+    </array>
+
+    <array name="level">
+        <item>@string/level_1_label</item>
+        <item>@string/level_2_label</item>
+    </array>
+
+</resources>

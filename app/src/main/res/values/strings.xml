@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">ChinessChess</string>
+    <string name="main_title">Co tuong</string>
+    <string name="new_game_label">New Game</string>
+    <string name="continue_label">Continue</string>
+    <string name="level_label">Level</string>
+    <string name="about_label">About</string>
+    <string name="exit_label">Exit</string>
+    
+    <string name="new_game_title">Start game</string>
+    <string name="first_label">First</string>
+    <string name="second_label">Second</string>
+
+    <string name="level_title">Select level</string>
+    <string name="level_1_label">Easy</string>
+    <string name="level_2_label">Hard</string>
+    
+    <string name="back_label">Back</string>
+    <string name="undo_label">Undo</string>
+    
+    <string name="about_string">ChinessChess 1.0</string>
+    <string name="about_info">Thông tin tác giả:</string>
+    <string name="about1_label">- Lê Ngọc Khôi - Developer</string>
+    <string name="about2_label">- Email: khoiln218@gmail.com</string>
+    <string name="about3_label">- Phone: 01264635095</string>
+    <string name="about4_label">- Fanpage: https://www.facebook.com/groups/1417992031767623/</string>
+    <string name="thamkhao_label">Tài liệu tham khảo:</string>
+    <string name="thamkhao1_label">Hướng dẫn lập trình android - Trần Vũ Tất Bình</string>
+    <string name="thamkhao2_label">congdongcviet.com</string>
+    <string name="thamkhao3_label">khanhtrinh11.wordpress.com</string>
+    <string name="about_button_label">OK</string>
+
+</resources>
