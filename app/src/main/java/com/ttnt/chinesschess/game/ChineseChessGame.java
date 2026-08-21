@@ -61,7 +61,7 @@ public class ChineseChessGame extends View {
         /** The AI started or finished searching, so its panel can show the sweeping ring. */
         void onThinkingChanged(boolean thinking);
 
-        /** The game ended; no clock runs any more. {@code byTimeout} tells why. */
+        /** The game ended; no clock runs anymore. {@code byTimeout} tells why. */
         void onGameOver(boolean playerWon, boolean byTimeout);
     }
 
@@ -79,10 +79,6 @@ public class ChineseChessGame extends View {
         this.listener = listener;
     }
 
-    /**
-     * Starts the first turn. Kept out of the constructor so the activity can attach its listener -
-     * and restore a saved board - before either side is put on the clock.
-     */
     /**
      * Starts a fresh game on the board and view that are already here: no activity restart, so the
      * artwork, the banner and the decoded bitmaps all stay put.
@@ -149,13 +145,14 @@ public class ChineseChessGame extends View {
     }
 
     /**
-     * The artwork is a 10:11 box - the 9 x 10 grid plus a cell of margin. Reporting that instead
-     * of swallowing every spare pixel lets the layout park the two player cards right against it.
+     * The board is the 9 x 10 grid plus the slice of margin {@link Graphics} keeps on each side.
+     * Reporting that instead of swallowing every spare pixel lets the layout park the two player
+     * cards right against it.
      */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
-        int height = width * (Graphics.ROW + 1) / (Graphics.COL + 1);
+        int height = Math.round(width * Graphics.boxCellsHigh() / Graphics.boxCellsWide());
         if (MeasureSpec.getMode(heightMeasureSpec) != MeasureSpec.UNSPECIFIED) {
             height = Math.min(height, MeasureSpec.getSize(heightMeasureSpec));
         }

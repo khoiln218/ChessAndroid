@@ -57,4 +57,6 @@
     <string name="thamkhao3_label">khanhtrinh11.wordpress.com</string>
     <string name="about_button_label">OK</string>
 
+    <!-- "Chu river, Han border": the four characters written across the middle of the board. -->
+    <string name="river_words" translatable="false">楚河漢界</string>
 </resources>
