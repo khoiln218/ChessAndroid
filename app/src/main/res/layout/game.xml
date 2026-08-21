@@ -1,55 +1,68 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:ads="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/game_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/bg_game"
     android:orientation="vertical">
 
     <!-- Fixed-height slot: the banner is 50dp tall, so reserving it up front keeps the board from
          jumping down when the ad finally arrives. -->
     <FrameLayout
+        android:id="@+id/ad_slot"
         android:layout_width="match_parent"
         android:layout_height="@dimen/ad_banner_height"
-        android:background="@color/adBackground">
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/bg_ad_slot">
 
         <TextView
             android:id="@+id/ad_placeholder"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
+            android:letterSpacing="0.15"
             android:text="@string/ad_placeholder"
             android:textColor="@color/adPlaceholderText"
-            android:textSize="12sp" />
-
-        <com.google.android.gms.ads.AdView
-            android:id="@+id/ad_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            ads:adSize="BANNER"
-            ads:adUnitId="@string/banner_ad_unit_id" />
+            android:textSize="11sp" />
     </FrameLayout>
 
-    <!-- Computer side -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Computer: identity on the left, clock on the right -->
     <LinearLayout
         android:id="@+id/computer_side"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/sideIdle"
-        android:gravity="start|center_vertical"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="12dp"
+        android:background="@drawable/bg_side_card"
+        android:elevation="3dp"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:paddingStart="10dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="6dp"
+        android:paddingBottom="8dp">
 
-        <com.ttnt.chinesschess.game.TurnTimerView
-            android:id="@+id/computer_timer"
-            android:layout_width="56dp"
-            android:layout_height="56dp" />
+        <ImageView
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/bg_avatar_red"
+            android:padding="5dp"
+            android:src="@drawable/rk"
+            tools:ignore="ContentDescription" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:gravity="start"
             android:orientation="vertical">
@@ -58,9 +71,10 @@
                 android:id="@+id/computer_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:letterSpacing="0.02"
                 android:text="@string/computer_label"
                 android:textColor="@color/sideRed"
-                android:textSize="18sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -68,39 +82,65 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/status_waiting"
-                android:textSize="14sp" />
+                android:textColor="@color/textMuted"
+                android:textSize="13sp" />
         </LinearLayout>
+
+        <com.ttnt.chinesschess.game.TurnTimerView
+            android:id="@+id/computer_timer"
+            android:layout_width="52dp"
+            android:layout_height="52dp" />
 
         <ImageButton
             android:id="@+id/menu_button"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="2dp"
+            android:background="@drawable/bg_icon_button"
             android:contentDescription="@string/menu_label"
+            android:padding="8dp"
             android:src="@drawable/ic_more_vert" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/layout"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical" />
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:paddingStart="8dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="10dp" />
 
-    <!-- Player side -->
+    <!-- Player: mirrored, so the two sides read as facing each other across the board -->
     <LinearLayout
         android:id="@+id/player_side"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/sideIdle"
-        android:gravity="end|center_vertical"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_side_card"
+        android:elevation="3dp"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:paddingStart="10dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="10dp"
+        android:paddingBottom="8dp">
+
+        <com.ttnt.chinesschess.game.TurnTimerView
+            android:id="@+id/player_timer"
+            android:layout_width="52dp"
+            android:layout_height="52dp" />
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="12dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
             android:gravity="end"
             android:orientation="vertical">
 
@@ -108,22 +148,33 @@
                 android:id="@+id/player_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:letterSpacing="0.02"
                 android:text="@string/player_label"
                 android:textColor="@color/sideBlack"
-                android:textSize="18sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/player_status"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/status_waiting"
-                android:textSize="14sp" />
+                android:text="@string/status_your_turn"
+                android:textColor="@color/textMuted"
+                android:textSize="13sp" />
         </LinearLayout>
 
-        <com.ttnt.chinesschess.game.TurnTimerView
-            android:id="@+id/player_timer"
-            android:layout_width="56dp"
-            android:layout_height="56dp" />
+        <ImageView
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/bg_avatar_black"
+            android:padding="5dp"
+            android:src="@drawable/bk"
+            tools:ignore="ContentDescription" />
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
 </LinearLayout>

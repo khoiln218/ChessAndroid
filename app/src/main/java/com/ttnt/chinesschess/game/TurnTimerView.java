@@ -2,7 +2,6 @@ package com.ttnt.chinesschess.game;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.os.SystemClock;
@@ -11,6 +10,9 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+
+import com.ttnt.chinesschess.R;
 
 /**
  * The circular turn clock drawn on each side's panel: a ring that empties as the side's three
@@ -19,13 +21,15 @@ import androidx.annotation.Nullable;
  */
 public class TurnTimerView extends View {
 
-    private static final int TRACK_COLOR = Color.parseColor("#DDDDDD");
-    private static final int IDLE_COLOR = Color.parseColor("#BDBDBD");
-    private static final int OK_COLOR = Color.parseColor("#2E7D32");
-    private static final int WARN_COLOR = Color.parseColor("#F9A825");
-    private static final int DANGER_COLOR = Color.parseColor("#C62828");
     /** One full turn of the thinking segment, in milliseconds. */
     private static final long SPIN_PERIOD = 1200L;
+
+    private final int trackColor;
+    private final int idleColor;
+    private final int okColor;
+    private final int warnColor;
+    private final int dangerColor;
+    private final int thinkingColor;
 
     private final Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -44,7 +48,13 @@ public class TurnTimerView extends View {
         super(context, attrs);
         ringPaint.setStyle(Paint.Style.STROKE);
         ringPaint.setStrokeCap(Paint.Cap.ROUND);
-        textPaint.setColor(Color.parseColor("#212121"));
+        trackColor = ContextCompat.getColor(context, R.color.timerTrack);
+        idleColor = ContextCompat.getColor(context, R.color.timerIdle);
+        okColor = ContextCompat.getColor(context, R.color.timerOk);
+        warnColor = ContextCompat.getColor(context, R.color.timerWarn);
+        dangerColor = ContextCompat.getColor(context, R.color.timerDanger);
+        thinkingColor = ContextCompat.getColor(context, R.color.gold);
+        textPaint.setColor(ContextCompat.getColor(context, R.color.sideBlack));
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setFakeBoldText(true);
     }
@@ -79,16 +89,16 @@ public class TurnTimerView extends View {
         oval.set(cx - radius, cy - radius, cx + radius, cy + radius);
 
         ringPaint.setStrokeWidth(stroke);
-        ringPaint.setColor(TRACK_COLOR);
+        ringPaint.setColor(trackColor);
         canvas.drawCircle(cx, cy, radius, ringPaint);
 
-        ringPaint.setColor(active ? timeColor() : IDLE_COLOR);
+        ringPaint.setColor(active ? timeColor() : idleColor);
         canvas.drawArc(oval, -90f, 360f * remaining, false, ringPaint);
 
         if (thinking) {
             long phase = SystemClock.uptimeMillis() % SPIN_PERIOD;
             ringPaint.setStrokeWidth(stroke / 2f);
-            ringPaint.setColor(Color.parseColor("#3F51B5"));
+            ringPaint.setColor(thinkingColor);
             canvas.drawArc(oval, -90f + 360f * phase / SPIN_PERIOD, 60f, false, ringPaint);
             postInvalidateOnAnimation();
         }
@@ -101,8 +111,8 @@ public class TurnTimerView extends View {
     }
 
     private int timeColor() {
-        if (remaining > 0.5f) return OK_COLOR;
-        if (remaining > 0.2f) return WARN_COLOR;
-        return DANGER_COLOR;
+        if (remaining > 0.5f) return okColor;
+        if (remaining > 0.2f) return warnColor;
+        return dangerColor;
     }
 }

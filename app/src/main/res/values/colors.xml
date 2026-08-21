@@ -4,11 +4,27 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
-    <color name="sideIdle">#F2F2F2</color>
-    <color name="sideActive">#FFF4CC</color>
-    <color name="sideRed">#C62828</color>
-    <color name="sideBlack">#212121</color>
+    <!-- Game screen palette: warm wood and parchment, gold for whoever is on the clock. -->
+    <color name="bgTop">#FBF3E3</color>
+    <color name="bgMid">#F0E2C6</color>
+    <color name="bgBottom">#DCC59A</color>
+    <color name="gold">#C7A24A</color>
 
-    <color name="adBackground">#EEEEEE</color>
-    <color name="adPlaceholderText">#9E9E9E</color>
+    <color name="cardIdle">#F2FFFFFF</color>
+    <color name="cardActive">#FFFDF6</color>
+    <color name="cardStroke">#26000000</color>
+    <color name="avatarFill">#FFF6E4</color>
+
+    <color name="sideRed">#B3261E</color>
+    <color name="sideBlack">#2B2B2B</color>
+    <color name="textMuted">#6B5B45</color>
+
+    <color name="timerTrack">#E3D6BC</color>
+    <color name="timerIdle">#B6A88F</color>
+    <color name="timerOk">#2E7D32</color>
+    <color name="timerWarn">#E08A00</color>
+    <color name="timerDanger">#B3261E</color>
+
+    <color name="adBackground">#14000000</color>
+    <color name="adPlaceholderText">#8A6B5B45</color>
 </resources>

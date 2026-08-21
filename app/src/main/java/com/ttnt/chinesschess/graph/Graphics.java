@@ -6,8 +6,10 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.graphics.RectF;
 
 import com.ttnt.chinesschess.R;
 import com.ttnt.chinesschess.chess.State;
@@ -44,6 +46,11 @@ public class Graphics {
     protected Bitmap imageclr;
     protected Bitmap imageban;
     protected Paint paint;
+    /** Wood panel behind the grid: half a cell of margin all round, with rounded corners. */
+    private final Rect panelBounds = new Rect();
+    private final RectF panelRect = new RectF();
+    private final Path panelPath = new Path();
+    private float panelRadius;
 
     public Graphics(Resources res) {
         paint = new Paint();
@@ -84,6 +91,12 @@ public class Graphics {
         UP = (height - boardHeight) / 2 + BORDER;
         RIGHT = LEFT + (COL - 1) * CELL_SIZE;
         DOWN = UP + (ROW - 1) * CELL_SIZE;
+
+        panelBounds.set(LEFT - BORDER, UP - BORDER, RIGHT + BORDER, DOWN + BORDER);
+        panelRect.set(panelBounds);
+        panelRadius = CELL_SIZE / 2.5f;
+        panelPath.reset();
+        panelPath.addRoundRect(panelRect, panelRadius, panelRadius, Path.Direction.CW);
     }
 
     public void drawBanCo(Canvas canvas) {
@@ -109,9 +122,10 @@ public class Graphics {
     }
 
     private void drawMain(Canvas canvas) {
-        paint.setColor(Color.rgb(153, 204, 51));
-        canvas.drawBitmap(imageban, null, new Rect(LEFT - BORDER, UP - BORDER,
-                RIGHT + BORDER, DOWN + BORDER), paint);
+        canvas.save();
+        canvas.clipPath(panelPath);
+        canvas.drawBitmap(imageban, null, panelBounds, paint);
+        canvas.restore();
         paint.setColor(Color.rgb(51, 51, 51));
         for (int i = 0; i < ROW; i++)
             canvas.drawLine(LEFT, (i) * CELL_SIZE + UP, RIGHT, (i) * CELL_SIZE
@@ -141,16 +155,20 @@ public class Graphics {
         int border = 5;
         canvas.drawLine(LEFT, UP, LEFT, DOWN, paint);
         canvas.drawLine(RIGHT, UP, RIGHT, DOWN, paint);
-        paint.setStrokeWidth(5);
-        canvas.drawLine(LEFT - border, UP - border, RIGHT + border,
-                UP - border, paint);
-        canvas.drawLine(LEFT - border, DOWN + border, RIGHT + border, DOWN
-                + border, paint);
 
-        canvas.drawLine(LEFT - border, UP - border, LEFT - border, DOWN
-                + border, paint);
-        canvas.drawLine(RIGHT + border, UP - border, RIGHT + border, DOWN
-                + border, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        // Dark rim around the wood, then the hairline that frames the playing grid itself.
+        paint.setStrokeWidth(CELL_SIZE / 12f);
+        paint.setColor(Color.rgb(74, 51, 32));
+        canvas.drawRoundRect(panelRect, panelRadius, panelRadius, paint);
+
+        paint.setStrokeWidth(4);
+        paint.setColor(Color.rgb(51, 51, 51));
+        float inner = panelRadius / 2f;
+        canvas.drawRoundRect(LEFT - border, UP - border, RIGHT + border, DOWN + border,
+                inner, inner, paint);
+
+        paint.setStyle(Paint.Style.FILL);
         paint.setStrokeWidth(2);
     }
 

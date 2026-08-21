@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Warm parchment-to-wood backdrop so the board reads as the lit object on the table. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:centerColor="@color/bgMid"
+        android:endColor="@color/bgBottom"
+        android:startColor="@color/bgTop"
+        android:type="linear" />
+</shape>

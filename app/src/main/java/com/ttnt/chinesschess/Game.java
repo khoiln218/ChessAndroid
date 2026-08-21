@@ -5,17 +5,21 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.util.DisplayMetrics;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
-import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 import com.ttnt.chinesschess.chess.Board;
@@ -102,7 +106,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
 
         LinearLayout layout = findViewById(R.id.layout);
         layout.addView(game, new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         findViewById(R.id.menu_button).setOnClickListener(this::showGameMenu);
 
         game.setListener(this);
@@ -110,14 +114,31 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
     }
 
     /**
-     * Loads the top banner. The slot keeps its 50dp height whether or not an ad shows up, so the
-     * placeholder only has to be swapped for the banner - nothing below it moves. The ids in
+     * Loads the top banner. The slot is resized to the exact height the ad will occupy before the
+     * first layout pass, so the placeholder simply gives way to the banner and nothing below it
+     * moves - a fixed 50dp box would clip the taller creatives wide screens get served. The ids in
      * strings.xml are Google's test ids for now.
      */
     private void setUpAds() {
         MobileAds.initialize(this);
         adPlaceholder = findViewById(R.id.ad_placeholder);
-        adView = findViewById(R.id.ad_view);
+
+        FrameLayout slot = findViewById(R.id.ad_slot);
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
+        int slotMarginsDp = 24;
+        int widthDp = (int) (metrics.widthPixels / metrics.density) - slotMarginsDp;
+        AdSize adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, widthDp);
+
+        ViewGroup.LayoutParams slotParams = slot.getLayoutParams();
+        slotParams.height = adSize.getHeightInPixels(this);
+        slot.setLayoutParams(slotParams);
+
+        adView = new AdView(this);
+        adView.setAdUnitId(getString(R.string.banner_ad_unit_id));
+        adView.setAdSize(adSize);
+        slot.addView(adView, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.CENTER));
         adView.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
@@ -216,10 +237,8 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
     }
 
     private void highlight(boolean computerActive, boolean playerActive) {
-        computerSide.setBackgroundColor(ContextCompat.getColor(this,
-                computerActive ? R.color.sideActive : R.color.sideIdle));
-        playerSide.setBackgroundColor(ContextCompat.getColor(this,
-                playerActive ? R.color.sideActive : R.color.sideIdle));
+        computerSide.setActivated(computerActive);
+        playerSide.setActivated(playerActive);
     }
 
     private static String formatTime(long millis) {

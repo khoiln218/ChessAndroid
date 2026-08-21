@@ -90,6 +90,20 @@ public class ChineseChessGame extends View {
         }
     }
 
+    /**
+     * The board is 9 files by 10 ranks, so it only ever needs a 9:10 box. Reporting that instead
+     * of swallowing every spare pixel lets the layout park the two player cards right against it.
+     */
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        int height = width * Graphics.ROW / Graphics.COL;
+        if (MeasureSpec.getMode(heightMeasureSpec) != MeasureSpec.UNSPECIFIED) {
+            height = Math.min(height, MeasureSpec.getSize(heightMeasureSpec));
+        }
+        setMeasuredDimension(width, height);
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
