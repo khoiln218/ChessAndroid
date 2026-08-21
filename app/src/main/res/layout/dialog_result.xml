@@ -1,0 +1,83 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_result_card"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="28dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="20dp">
+
+    <ImageView
+        android:id="@+id/result_avatar"
+        android:layout_width="88dp"
+        android:layout_height="88dp"
+        android:background="@drawable/bg_avatar_black"
+        android:padding="8dp"
+        android:src="@drawable/black_tuong"
+        tools:ignore="ContentDescription" />
+
+    <TextView
+        android:id="@+id/result_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:letterSpacing="0.03"
+        android:text="@string/result_win_title"
+        android:textColor="@color/resultWin"
+        android:textSize="26sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/result_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:text="@string/result_win_checkmate"
+        android:textColor="@color/textMuted"
+        android:textSize="15sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/cardStroke" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/result_menu"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_ghost"
+            android:stateListAnimator="@null"
+            android:text="@string/result_menu"
+            android:textColor="@color/gold"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:ignore="ButtonStyle" />
+
+        <Button
+            android:id="@+id/result_new"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_gold"
+            android:stateListAnimator="@null"
+            android:text="@string/result_new_game"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            tools:ignore="ButtonStyle" />
+    </LinearLayout>
+
+</LinearLayout>

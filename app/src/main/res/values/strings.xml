@@ -33,6 +33,15 @@
     <string name="banner_ad_unit_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
 
     <string name="menu_label">Menu</string>
+
+    <string name="result_win_title">Chiến thắng!</string>
+    <string name="result_lose_title">Thua rồi!</string>
+    <string name="result_win_checkmate">Bạn đã chiếu bí Máy.</string>
+    <string name="result_lose_checkmate">Máy đã chiếu bí bạn.</string>
+    <string name="result_win_timeout">Máy hết giờ cho lượt của mình.</string>
+    <string name="result_lose_timeout">Bạn đã dùng hết 3 phút cho lượt này.</string>
+    <string name="result_new_game">Ván mới</string>
+    <string name="result_menu">Về menu</string>
     <string name="back_label">Back</string>
     <string name="undo_label">Undo</string>
     

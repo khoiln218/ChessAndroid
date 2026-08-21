@@ -1,6 +1,8 @@
 package com.ttnt.chinesschess;
 
+import android.graphics.Color;
 import android.graphics.Point;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,12 +12,15 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
+import androidx.core.content.ContextCompat;
 
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
@@ -50,6 +55,8 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
     private TurnTimerView playerTimer;
     private TextView computerStatus;
     private TextView playerStatus;
+
+    private AlertDialog resultDialog;
 
     private boolean computerToMove;
     private boolean clockRunning;
@@ -188,7 +195,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
     }
 
     @Override
-    public void onGameOver(boolean playerWon) {
+    public void onGameOver(boolean playerWon, boolean byTimeout) {
         stopClock();
         thinking = false;
         computerTimer.setThinking(false);
@@ -196,7 +203,49 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         playerStatus.setText(R.string.status_finished);
         showClock(remainingMillis);
         highlight(false, false);
+        showResultDialog(playerWon, byTimeout);
     }
+
+    /** The end-of-game card: who won, why, and the two ways out of the finished board. */
+    private void showResultDialog(boolean playerWon, boolean byTimeout) {
+        if (isFinishing() || (resultDialog != null && resultDialog.isShowing())) return;
+
+        View content = getLayoutInflater().inflate(R.layout.dialog_result, null);
+        ImageView avatar = content.findViewById(R.id.result_avatar);
+        TextView title = content.findViewById(R.id.result_title);
+        TextView message = content.findViewById(R.id.result_message);
+
+        // The winner's general fronts the card.
+        avatar.setImageResource(playerWon ? R.drawable.black_tuong : R.drawable.red_tuong);
+        avatar.setBackgroundResource(
+                playerWon ? R.drawable.bg_avatar_black : R.drawable.bg_avatar_red);
+        title.setText(playerWon ? R.string.result_win_title : R.string.result_lose_title);
+        title.setTextColor(ContextCompat.getColor(this,
+                playerWon ? R.color.resultWin : R.color.resultLose));
+        if (byTimeout) {
+            message.setText(playerWon ? R.string.result_win_timeout
+                    : R.string.result_lose_timeout);
+        } else {
+            message.setText(playerWon ? R.string.result_win_checkmate
+                    : R.string.result_lose_checkmate);
+        }
+
+        resultDialog = new AlertDialog.Builder(this).setView(content).create();
+        if (resultDialog.getWindow() != null) {
+            // Let the card's own rounded corners show instead of the default square panel.
+            resultDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
+        content.findViewById(R.id.result_menu).setOnClickListener(v -> {
+            resultDialog.dismiss();
+            finish();
+        });
+        content.findViewById(R.id.result_new).setOnClickListener(v -> {
+            resultDialog.dismiss();
+            game.newGame();
+        });
+        resultDialog.show();
+    }
+
 
     /** Runs the clock of whichever side is to move; the idle side keeps its ring dimmed. */
     private void startClock() {
@@ -272,6 +321,9 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
 
     @Override
     protected void onDestroy() {
+        if (resultDialog != null && resultDialog.isShowing()) {
+            resultDialog.dismiss();
+        }
         if (adView != null) {
             adView.destroy();
         }

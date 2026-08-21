@@ -11,7 +11,6 @@ import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -36,6 +35,11 @@ public class ChineseChessGame extends View {
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private Listener listener;
     /**
+     * Bumped by every new game. Work already queued for the previous game carries the old value
+     * and is dropped when it lands - a search can still be running when a game ends on time.
+     */
+    private int generation;
+    /**
      * Ends of the move that was actually played last. Board#prevMove doubles as "the square the
      * player is holding", so it cannot be used for this - picking a piece up would wipe the mark.
      */
@@ -57,8 +61,8 @@ public class ChineseChessGame extends View {
         /** The AI started or finished searching, so its panel can show the sweeping ring. */
         void onThinkingChanged(boolean thinking);
 
-        /** The game ended; no clock runs any more. */
-        void onGameOver(boolean playerWon);
+        /** The game ended; no clock runs any more. {@code byTimeout} tells why. */
+        void onGameOver(boolean playerWon, boolean byTimeout);
     }
 
     public ChineseChessGame(Context context, int level, boolean turn) {
@@ -79,6 +83,18 @@ public class ChineseChessGame extends View {
      * Starts the first turn. Kept out of the constructor so the activity can attach its listener -
      * and restore a saved board - before either side is put on the clock.
      */
+    /**
+     * Starts a fresh game on the board and view that are already here: no activity restart, so the
+     * artwork, the banner and the decoded bitmaps all stay put.
+     */
+    public void newGame() {
+        generation++;
+        board.reset(!turn);
+        isGameOver = false;
+        clearLastMove();
+        start();
+    }
+
     public void start() {
         if (board.move) {
             // Restored game: the saved board still knows which move ended the last session.
@@ -126,13 +142,9 @@ public class ChineseChessGame extends View {
     public void loseByTimeout() {
         if (isGameOver) return;
         isGameOver = true;
-        boolean playerWon = board.RED;
-        Toast.makeText(getContext(),
-                playerWon ? "Computer ran out of time. You Win!" : "Time is up. You Lose!",
-                Toast.LENGTH_SHORT).show();
         if (listener != null) {
             listener.onThinkingChanged(false);
-            listener.onGameOver(playerWon);
+            listener.onGameOver(board.RED, true);
         }
     }
 
@@ -232,14 +244,15 @@ public class ChineseChessGame extends View {
     }
 
     public void switchPlayer() {
+        final int started = generation;
         executor.execute(() -> {
             final boolean result = board.isGameOver(board.RED) || board.isGameOver(!board.RED);
             mainHandler.post(() -> {
+                if (started != generation) return;
                 isGameOver = result;
                 if (isGameOver) {
-                    showGameOver();
                     if (listener != null) {
-                        listener.onGameOver(board.RED);
+                        listener.onGameOver(board.RED, false);
                     }
                 } else {
                     beginTurn();
@@ -252,9 +265,11 @@ public class ChineseChessGame extends View {
         if (listener != null) {
             listener.onThinkingChanged(true);
         }
+        final int started = generation;
         executor.execute(() -> {
             final State pos = ai.generateMove(board.RED);
             mainHandler.post(() -> {
+                if (started != generation) return;
                 if (listener != null) {
                     listener.onThinkingChanged(false);
                 }
@@ -267,13 +282,4 @@ public class ChineseChessGame extends View {
         });
     }
 
-    void showGameOver() {
-        if (board.RED) {
-            Toast.makeText(getContext(), "You Win!", Toast.LENGTH_SHORT)
-                    .show();
-        } else {
-            Toast.makeText(getContext(), "You Lose!", Toast.LENGTH_SHORT)
-                    .show();
-        }
-    }
 }

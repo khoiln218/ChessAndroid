@@ -18,6 +18,10 @@
     <color name="sideRed">#B3261E</color>
     <color name="sideBlack">#2B2B2B</color>
     <color name="textMuted">#6B5B45</color>
+    <color name="rippleLight">#55FFFFFF</color>
+    <color name="rippleGold">#33C7A24A</color>
+    <color name="resultWin">#2E7D32</color>
+    <color name="resultLose">#B3261E</color>
 
     <color name="timerTrack">#E3D6BC</color>
     <color name="timerIdle">#B6A88F</color>

@@ -31,6 +31,12 @@ public final class Board {
 
     public Board(boolean side) {
         listUndo = new ArrayList<>();
+        reset(side);
+    }
+
+    /** Back to the opening position, in place, so everything holding this board stays valid. */
+    public void reset(boolean side) {
+        listUndo.clear();
         setBoard(cellStartup);
         currMove = new Point(-1, -1);
         prevMove = new Point(-1, -1);
