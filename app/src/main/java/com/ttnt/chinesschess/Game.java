@@ -1,15 +1,18 @@
 package com.ttnt.chinesschess;
 
+import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.util.DisplayMetrics;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -22,8 +25,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.PopupMenu;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
 
-import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
@@ -89,12 +92,12 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         SystemBars.applyInsetsAsPadding(this, findViewById(R.id.game_root));
 
         int turnGame = 1;
-        int levelGame = 1;
+        int levelGame = Settings.level(this);
 
         Bundle extras = getIntent().getExtras();
         if (extras != null) {
             turnGame = extras.getInt("turn_game");
-            levelGame = extras.getInt("level_game");
+            levelGame = extras.getInt("level_game", levelGame);
         }
 
         if (turnGame == 2) {
@@ -119,6 +122,9 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         findViewById(R.id.menu_button).setOnClickListener(this::showGameMenu);
 
         tintAvatars(BoardTheme.load(this));
+        showLevel(levelGame);
+        // Carrying on a saved game is not a new one, so only a fresh start counts.
+        showGames(turnGame == 2 ? Settings.gamesPlayed(this) : Settings.bumpGames(this));
 
         game.setListener(this);
         game.start();
@@ -158,7 +164,9 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         popup.inflate(R.menu.game_menu);
         popup.setForceShowIcon(true);
         // Undo rolls back a full round - the player's move and the reply - so it needs both.
-        popup.getMenu().findItem(R.id.action_undo).setEnabled(game.board.listUndo.size() > 1);
+        MenuItem undo = popup.getMenu().findItem(R.id.action_undo);
+        undo.setEnabled(game.board.listUndo.size() > 1);
+        matchIconToLabel(undo);
         popup.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
             if (id == R.id.action_undo) {
@@ -181,14 +189,25 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
     /** Repaints the board straight away, so the five materials can be compared on the position. */
     private void openThemeDialog() {
         BoardTheme[] themes = BoardTheme.values();
-        new AlertDialog.Builder(this).setTitle(R.string.theme_title)
-                .setSingleChoiceItems(BoardTheme.labels(this), BoardTheme.load(this).ordinal(),
-                        (dialog, i) -> {
-                            themes[i].save(this);
-                            game.setTheme(themes[i]);
-                            tintAvatars(themes[i]);
-                            dialog.dismiss();
-                        }).show();
+        ChoiceDialog.show(this, R.string.theme_title, BoardTheme.labels(this),
+                BoardTheme.load(this).ordinal(), i -> {
+                    themes[i].save(this);
+                    game.setTheme(themes[i]);
+                    tintAvatars(themes[i]);
+                });
+    }
+
+
+    private void showGames(int played) {
+        ((TextView) findViewById(R.id.computer_games)).setText(String.valueOf(played));
+    }
+
+    /** Names the strength the machine is playing at, beside its own name on its panel. */
+    private void showLevel(int level) {
+        String[] levels = getResources().getStringArray(R.array.level);
+        // The lobby numbers its levels from 2; anything outside the list falls back to the first.
+        int index = Math.min(Math.max(level - Settings.DEFAULT_LEVEL, 0), levels.length - 1);
+        ((TextView) findViewById(R.id.computer_level)).setText(levels[index]);
     }
 
     /**
@@ -202,14 +221,26 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
 
     /** Puts one side's general on a view, inside a ring struck in that side's own colour. */
     private void dressAvatar(ImageView view, BoardTheme theme, boolean red) {
-        view.setImageBitmap(PieceArt.general(getResources(), theme, red,
-                getResources().getDimensionPixelSize(R.dimen.avatar_piece)));
-        GradientDrawable ring = new GradientDrawable();
-        ring.setShape(GradientDrawable.OVAL);
-        ring.setColor(ContextCompat.getColor(this, R.color.avatarFill));
-        ring.setStroke(Math.round(getResources().getDisplayMetrics().density * 2),
-                red ? theme.rimOf(true) : theme.rimOf(false));
-        view.setBackground(ring);
+        PieceArt.dressAvatar(view, theme, red);
+    }
+
+    /**
+     * A disabled menu item greys its label but leaves its icon at full strength, so the row reads
+     * as half switched off. This paints the icon in the colour the label is actually using - read
+     * off the theme rather than guessed, so the two always agree.
+     */
+    private void matchIconToLabel(MenuItem item) {
+        Drawable icon = item.getIcon();
+        if (icon == null || item.isEnabled()) return;
+        TypedArray styled = obtainStyledAttributes(new int[]{android.R.attr.textColorPrimary});
+        ColorStateList labelColors = styled.getColorStateList(0);
+        styled.recycle();
+        if (labelColors == null) return;
+        int disabled = labelColors.getColorForState(new int[]{-android.R.attr.state_enabled},
+                labelColors.getDefaultColor());
+        Drawable tinted = DrawableCompat.wrap(icon.mutate());
+        DrawableCompat.setTint(tinted, disabled);
+        item.setIcon(tinted);
     }
 
     // --- turn clock ---------------------------------------------------------
@@ -279,6 +310,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         });
         content.findViewById(R.id.result_new).setOnClickListener(v -> {
             resultDialog.dismiss();
+            showGames(Settings.bumpGames(this));
             game.newGame();
         });
         resultDialog.show();

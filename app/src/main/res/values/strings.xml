@@ -2,19 +2,19 @@
 <resources>
 
     <string name="app_name">CoTuong AI</string>
-    <string name="new_game_label">New Game</string>
-    <string name="continue_label">Continue</string>
-    <string name="level_label">Level</string>
-    <string name="about_label">About</string>
-    <string name="exit_label">Exit</string>
+    <string name="new_game_label">Ván mới</string>
+    <string name="continue_label">Chơi tiếp</string>
+    <string name="level_label">Cấp độ</string>
+    <string name="about_label">Giới thiệu</string>
+    <string name="exit_label">Thoát</string>
     
-    <string name="new_game_title">Start game</string>
-    <string name="first_label">First</string>
-    <string name="second_label">Second</string>
+    <string name="new_game_title">Bên nào đi trước?</string>
+    <string name="first_label">Bạn đi trước</string>
+    <string name="second_label">Máy đi trước</string>
 
-    <string name="level_title">Select level</string>
-    <string name="level_1_label">Easy</string>
-    <string name="level_2_label">Hard</string>
+    <string name="level_title">Chọn cấp độ</string>
+    <string name="level_1_label">Dễ</string>
+    <string name="level_2_label">Khó</string>
     
     <string name="player_label">Người chơi (Đen)</string>
     <string name="computer_label">Máy (Đỏ)</string>
@@ -25,12 +25,11 @@
 
     <!-- Google's public test ids: swap both this and the manifest APPLICATION_ID for the real
          AdMob ids before publishing, otherwise the account can be suspended for invalid traffic. -->
-    <string name="ad_placeholder">Quảng cáo</string>
     <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
     <string name="banner_ad_unit_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
 
-    <string name="theme_label">Board</string>
-    <string name="theme_title">Select board</string>
+    <string name="theme_label">Bàn cờ</string>
+    <string name="theme_title">Chọn bàn cờ</string>
     <!-- The five elements, each named for the material its set is cut from. -->
     <string name="theme_kim">Kim (Metal)</string>
     <string name="theme_moc">Mộc (Wood)</string>
@@ -38,6 +37,11 @@
     <string name="theme_hoa">Hỏa (Fire)</string>
     <string name="theme_tho">Thổ (Earth)</string>
 
+    <string name="lobby_title">CỜ TƯỚNG</string>
+    <string name="lobby_subtitle">Chọn thế trận rồi vào ván</string>
+    <string name="lobby_change">Đổi</string>
+    <string name="lobby_version">Phiên bản 1.0</string>
+    <string name="games_unit">ván</string>
     <string name="menu_label">Menu</string>
 
     <string name="result_win_title">Chiến thắng!</string>
@@ -54,10 +58,10 @@
     <string name="result_lose_perpetual_chase">Bạn bắt quân liên tục nên bị xử thua.</string>
     <string name="result_new_game">Ván mới</string>
     <string name="result_menu">Về menu</string>
-    <string name="back_label">Back</string>
-    <string name="undo_label">Undo</string>
+    <string name="back_label">Thoát ván</string>
+    <string name="undo_label">Đi lại</string>
     
-    <string name="about_string">CoTuong AI 1.0</string>
+    <string name="about_string">Cờ Tướng AI</string>
     <string name="about_info">Thông tin tác giả:</string>
     <string name="about1_label">- Lê Ngọc Khôi - Developer</string>
     <string name="about2_label">- Email: khoiln218@gmail.com</string>
@@ -67,7 +71,7 @@
     <string name="thamkhao1_label">Hướng dẫn lập trình android - Trần Vũ Tất Bình</string>
     <string name="thamkhao2_label">congdongcviet.com</string>
     <string name="thamkhao3_label">khanhtrinh11.wordpress.com</string>
-    <string name="about_button_label">OK</string>
+    <string name="about_button_label">Đóng</string>
 
     <!-- "Chu river, Han border": the four characters written across the middle of the board. -->
     <string name="river_words" translatable="false">楚河漢界</string>

@@ -116,18 +116,6 @@ public final class Board {
         }
     }
 
-    /** Sets up an arbitrary position and starts the record from it. */
-    public void startFrom(byte[][] position, boolean redToMove) {
-        listUndo.clear();
-        setBoard(position);
-        currMove = new Point(-1, -1);
-        prevMove = new Point(-1, -1);
-        select = false;
-        move = false;
-        RED = redToMove;
-        restartHistory();
-    }
-
     /** Reads the key of the position as it stands, the slow way - only when the board is set. */
     public long computeKey() {
         long k = RED ? ZOBRIST_SIDE : 0L;
@@ -175,7 +163,7 @@ public final class Board {
     }
 
     public Piece getPiece(int x, int y) {
-        Piece piece = null;
+        Piece piece;
         byte value = getValue(x, y);
         piece = switch (value) {
             case 8, 15 -> new CKing(this, new Point(x, y));
@@ -185,7 +173,7 @@ public final class Board {
             case 12, 19 -> new CRook(this, new Point(x, y));
             case 13, 20 -> new CCannon(this, new Point(x, y));
             case 14, 21 -> new CPawn(this, new Point(x, y));
-            default -> piece;
+            default -> null;
         };
         return piece;
     }
@@ -217,8 +205,8 @@ public final class Board {
         int kx = -1;
         int ky = -1;
         // A general never leaves its palace, so nine squares are enough to find it.
-        int top = red ? 0 : 7;
-        for (int x = top; x < top + 3 && kx < 0; x++) {
+        int firstRow = red ? 0 : 7;
+        for (int x = firstRow; x < firstRow + 3 && kx < 0; x++) {
             for (int y = 3; y <= 5; y++) {
                 if (cell[x][y] == general) {
                     kx = x;
@@ -247,12 +235,10 @@ public final class Board {
                 if (kind == KIND_KING && dy == 0) return false;
             }
             // Past that screen, a cannon on the same line is firing over it.
-            x += dx;
-            y += dy;
-            while (inside(x, y) && cell[x][y] == 0) {
+            do {
                 x += dx;
                 y += dy;
-            }
+            } while (inside(x, y) && cell[x][y] == 0);
             if (inside(x, y) && isEnemy(cell[x][y], red) && kind(cell[x][y]) == KIND_CANNON) {
                 return false;
             }
@@ -372,7 +358,7 @@ public final class Board {
         ArrayList<Point> allPiece = findPieces(_RED);
         for (int i = 1; i < allPiece.size(); i++) {
             Point pos = allPiece.get(i);
-            ArrayList<State> arrMoves = null;
+            ArrayList<State> arrMoves;
             byte val = cell[pos.x][pos.y];
             arrMoves = switch (val) {
                 case 8, 15 -> {
@@ -403,7 +389,7 @@ public final class Board {
                     CPawn pawn = new CPawn(this, pos);
                     yield pawn.findAllPossibleMoves();
                 }
-                default -> arrMoves;
+                default -> null;
             };
             if (arrMoves != null && !arrMoves.isEmpty()) {
                 return false;

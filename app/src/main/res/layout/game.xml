@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/game_root"
     android:layout_width="match_parent"
@@ -15,7 +16,7 @@
         android:layout_marginStart="12dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="12dp"
-        android:layout_marginBottom="24dp"/>
+        android:layout_marginBottom="24dp" />
 
     <View
         android:layout_width="match_parent"
@@ -55,15 +56,37 @@
             android:gravity="start"
             android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/computer_name"
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:letterSpacing="0.02"
-                android:text="@string/computer_label"
-                android:textColor="@color/sideRed"
-                android:textSize="17sp"
-                android:textStyle="bold" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/computer_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.02"
+                    android:text="@string/computer_label"
+                    android:textColor="@color/sideRed"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/computer_level"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_level_chip"
+                    android:paddingStart="8dp"
+                    android:paddingTop="1dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="2dp"
+                    android:textColor="@color/gold"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    tools:text="Khó" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/computer_status"
@@ -79,15 +102,33 @@
             android:layout_width="52dp"
             android:layout_height="52dp" />
 
-        <ImageButton
-            android:id="@+id/menu_button"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="2dp"
-            android:background="@drawable/bg_icon_button"
-            android:contentDescription="@string/menu_label"
-            android:padding="8dp"
-            android:src="@drawable/ic_more_vert" />
+        <!-- How many games this machine has been played, in the space the menu used to take. -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:gravity="center_horizontal"
+            android:minWidth="40dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/computer_games"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/gold"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                tools:text="12" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/games_unit"
+                android:textColor="@color/textMuted"
+                android:textSize="10sp"
+                tools:ignore="SmallSp" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <LinearLayout
@@ -113,10 +154,21 @@
         android:elevation="3dp"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingStart="10dp"
+        android:paddingStart="6dp"
         android:paddingTop="8dp"
         android:paddingEnd="10dp"
         android:paddingBottom="8dp">
+
+        <ImageButton
+            android:id="@+id/menu_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="4dp"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/menu_label"
+            android:padding="8dp"
+            android:src="@drawable/ic_more_vert"
+            app:tint="@color/gold" />
 
         <com.ttnt.chinesschess.game.TurnTimerView
             android:id="@+id/player_timer"

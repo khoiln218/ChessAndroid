@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One option in a choice dialog; the picked one is gold and carries the tick. -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:background="?attr/selectableItemBackground"
+    android:drawablePadding="10dp"
+    android:gravity="center_vertical"
+    android:paddingStart="6dp"
+    android:paddingEnd="6dp"
+    android:textColor="@color/textMuted"
+    android:textSize="16sp" />

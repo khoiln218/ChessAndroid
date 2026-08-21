@@ -77,6 +77,23 @@ public final class PieceArt {
         return render(paths[red ? paths.length / 2 : 0], size, theme, red);
     }
 
+    /**
+     * Puts one side's general on a view, inside a ring struck in that side's own colour - the
+     * seat marker the lobby and the two side panels both use.
+     */
+    public static void dressAvatar(android.widget.ImageView view, BoardTheme theme, boolean red) {
+        Resources res = view.getResources();
+        view.setImageBitmap(general(res, theme, red,
+                res.getDimensionPixelSize(R.dimen.avatar_piece)));
+        android.graphics.drawable.GradientDrawable ring =
+                new android.graphics.drawable.GradientDrawable();
+        ring.setShape(android.graphics.drawable.GradientDrawable.OVAL);
+        ring.setColor(androidx.core.content.res.ResourcesCompat.getColor(
+                res, R.color.avatarFill, null));
+        ring.setStroke(Math.round(res.getDisplayMetrics().density * 2), theme.rimOf(red));
+        view.setBackground(ring);
+    }
+
     private static Bitmap render(String glyphPath, int size, BoardTheme theme, boolean red) {
         int rim = theme.rimOf(red);
         int face = red ? theme.redFace : theme.blackFace;
