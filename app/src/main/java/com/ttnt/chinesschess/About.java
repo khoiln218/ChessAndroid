@@ -10,6 +10,7 @@ public class About extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.about);
+        SystemBars.applyInsetsAsPadding(this, findViewById(R.id.about_root));
 
         findViewById(R.id.about_button).setOnClickListener(v -> finish());
     }

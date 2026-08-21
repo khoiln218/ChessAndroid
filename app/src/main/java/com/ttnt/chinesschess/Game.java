@@ -29,6 +29,7 @@ public class Game extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.game);
+        SystemBars.applyInsetsAsPadding(this, findViewById(R.id.game_root));
 
         Point screen = getScreenSize();
         int width = screen.x;

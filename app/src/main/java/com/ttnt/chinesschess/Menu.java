@@ -17,6 +17,7 @@ public class Menu extends AppCompatActivity implements OnClickListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu);
+        SystemBars.applyInsetsAsPadding(this, findViewById(R.id.menu_root));
 
         Button newGame = findViewById(R.id.new_button);
         newGame.setOnClickListener(this);
