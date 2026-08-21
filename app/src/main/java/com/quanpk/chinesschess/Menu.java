@@ -1,7 +1,5 @@
 package com.quanpk.chinesschess;
 
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,7 +7,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-public class Menu extends Activity implements OnClickListener {
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class Menu extends AppCompatActivity implements OnClickListener {
 
     int level = 1;
 
@@ -32,28 +33,20 @@ public class Menu extends Activity implements OnClickListener {
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.new_button:
-                openNewGameDialog();
-                break;
-            case R.id.continue_button:
-                Intent continueGame = new Intent(Menu.this, Game.class);
-                continueGame.putExtra("turn_game", 2);
-                startActivity(continueGame);
-                break;
-            case R.id.level_button:
-                openLevelDialog();
-                break;
-            case R.id.about_button:
-                Intent about = new Intent(Menu.this, About.class);
-                startActivity(about);
-                break;
-            case R.id.exit_button:
-                finish();
-                break;
-
-            default:
-                break;
+        int id = v.getId();
+        if (id == R.id.new_button) {
+            openNewGameDialog();
+        } else if (id == R.id.continue_button) {
+            Intent continueGame = new Intent(Menu.this, Game.class);
+            continueGame.putExtra("turn_game", 2);
+            startActivity(continueGame);
+        } else if (id == R.id.level_button) {
+            openLevelDialog();
+        } else if (id == R.id.about_button) {
+            Intent about = new Intent(Menu.this, About.class);
+            startActivity(about);
+        } else if (id == R.id.exit_button) {
+            finish();
         }
     }
 

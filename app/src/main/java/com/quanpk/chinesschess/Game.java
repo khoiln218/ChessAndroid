@@ -1,14 +1,14 @@
 package com.quanpk.chinesschess;
 
-import android.app.Activity;
 import android.graphics.Point;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.quanpk.chinesschess.chess.Board;
 import com.quanpk.chinesschess.chess.State;
@@ -19,7 +19,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class Game extends Activity {
+public class Game extends AppCompatActivity {
     ChinessChessNew game;
 
     @Override

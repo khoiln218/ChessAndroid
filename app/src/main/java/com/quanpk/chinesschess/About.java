@@ -1,12 +1,12 @@
 package com.quanpk.chinesschess;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Button;
 
-public class About extends Activity {
+import androidx.appcompat.app.AppCompatActivity;
+
+public class About extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
