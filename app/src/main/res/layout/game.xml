@@ -56,7 +56,7 @@
             android:layout_height="46dp"
             android:background="@drawable/bg_avatar_red"
             android:padding="5dp"
-            android:src="@drawable/rk"
+            android:src="@drawable/red_tuong"
             tools:ignore="ContentDescription" />
 
         <LinearLayout
@@ -168,7 +168,7 @@
             android:layout_height="46dp"
             android:background="@drawable/bg_avatar_black"
             android:padding="5dp"
-            android:src="@drawable/bk"
+            android:src="@drawable/black_tuong"
             tools:ignore="ContentDescription" />
     </LinearLayout>
 

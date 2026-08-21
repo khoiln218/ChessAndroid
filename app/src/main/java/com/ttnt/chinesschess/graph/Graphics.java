@@ -4,7 +4,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
@@ -16,9 +15,15 @@ import com.ttnt.chinesschess.chess.State;
 
 import java.util.ArrayList;
 
+/**
+ * Draws the board from the artwork in drawable-nodpi. The board image already carries the grid,
+ * both palaces, the river and the frame, and it is laid out on a 10 x 11 cell box: one cell of
+ * margin around the 9 x 10 grid of intersections, exactly as the art expects.
+ */
 public class Graphics {
 
     public static int CELL_SIZE;
+    /** Margin between the outer edge of the artwork and the first line: one full cell. */
     public static int BORDER;
     public final static int ROW = 10;
     public final static int COL = 9;
@@ -26,54 +31,46 @@ public class Graphics {
     public static int UP;
     public static int RIGHT;
     public static int DOWN;
+    /** Half the width a piece is drawn at. */
     public static int SIZE;
-    protected Bitmap imageLogo;
-    protected Bitmap imageba;
-    protected Bitmap imagebb;
-    protected Bitmap imagebc;
-    protected Bitmap imagebk;
-    protected Bitmap imagebn;
-    protected Bitmap imagebp;
-    protected Bitmap imagebr;
-    protected Bitmap imagera;
-    protected Bitmap imagerb;
-    protected Bitmap imagerc;
-    protected Bitmap imagerk;
-    protected Bitmap imagern;
-    protected Bitmap imagerp;
-    protected Bitmap imagerr;
-    protected Bitmap imagesel;
-    protected Bitmap imageclr;
-    protected Bitmap imageban;
-    protected Paint paint;
-    /** Wood panel behind the grid: half a cell of margin all round, with rounded corners. */
+
+    private final Bitmap imageBoard;
+    /** Indexed by {@code cell value - 8}: black tuong..tot, then red tuong..tot. */
+    private final Bitmap[] pieces;
+    private final Bitmap imageSelected;
+    private final Bitmap imageMoveDot;
+    private final Bitmap imageCapture;
+    private final Bitmap imageLastMove;
+    private final Paint paint;
+
     private final Rect panelBounds = new Rect();
     private final RectF panelRect = new RectF();
     private final Path panelPath = new Path();
-    private float panelRadius;
+    private final Rect cellRect = new Rect();
 
     public Graphics(Resources res) {
-        paint = new Paint();
-        paint.setStrokeWidth(2);
-        imageLogo = BitmapFactory.decodeResource(res, R.drawable.logo);
-        imageba = BitmapFactory.decodeResource(res, R.drawable.ba);
-        imagebb = BitmapFactory.decodeResource(res, R.drawable.bb);
-        imagebc = BitmapFactory.decodeResource(res, R.drawable.bc);
-        imagebk = BitmapFactory.decodeResource(res, R.drawable.bk);
-        imagebn = BitmapFactory.decodeResource(res, R.drawable.bn);
-        imagebp = BitmapFactory.decodeResource(res, R.drawable.bp);
-        imagebr = BitmapFactory.decodeResource(res, R.drawable.br);
-        imagera = BitmapFactory.decodeResource(res, R.drawable.ra);
-        imagerb = BitmapFactory.decodeResource(res, R.drawable.rb);
-        imagerc = BitmapFactory.decodeResource(res, R.drawable.rc);
-        imagerk = BitmapFactory.decodeResource(res, R.drawable.rk);
-        imagern = BitmapFactory.decodeResource(res, R.drawable.rn);
-        imagerp = BitmapFactory.decodeResource(res, R.drawable.rp);
-        imagerr = BitmapFactory.decodeResource(res, R.drawable.rr);
-        imagesel = BitmapFactory.decodeResource(res, R.drawable.sel);
-        imageclr = BitmapFactory.decodeResource(res, R.drawable.clr);
-        imageban = BitmapFactory.decodeResource(res, R.drawable.banco);
-
+        paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setFilterBitmap(true);
+        imageBoard = BitmapFactory.decodeResource(res, R.drawable.board_bg);
+        pieces = new Bitmap[]{
+                BitmapFactory.decodeResource(res, R.drawable.black_tuong),
+                BitmapFactory.decodeResource(res, R.drawable.black_si),
+                BitmapFactory.decodeResource(res, R.drawable.black_tuong_voi),
+                BitmapFactory.decodeResource(res, R.drawable.black_ma),
+                BitmapFactory.decodeResource(res, R.drawable.black_xe),
+                BitmapFactory.decodeResource(res, R.drawable.black_phao),
+                BitmapFactory.decodeResource(res, R.drawable.black_tot),
+                BitmapFactory.decodeResource(res, R.drawable.red_tuong),
+                BitmapFactory.decodeResource(res, R.drawable.red_si),
+                BitmapFactory.decodeResource(res, R.drawable.red_tuong_voi),
+                BitmapFactory.decodeResource(res, R.drawable.red_ma),
+                BitmapFactory.decodeResource(res, R.drawable.red_xe),
+                BitmapFactory.decodeResource(res, R.drawable.red_phao),
+                BitmapFactory.decodeResource(res, R.drawable.red_tot)};
+        imageSelected = BitmapFactory.decodeResource(res, R.drawable.hl_selected);
+        imageMoveDot = BitmapFactory.decodeResource(res, R.drawable.hl_move_dot);
+        imageCapture = BitmapFactory.decodeResource(res, R.drawable.hl_capture);
+        imageLastMove = BitmapFactory.decodeResource(res, R.drawable.hl_last_move);
     }
 
     /**
@@ -82,156 +79,76 @@ public class Graphics {
      * evenly on each side.
      */
     public void setSize(int width, int height) {
-        CELL_SIZE = Math.min(width / COL, height / ROW);
-        BORDER = CELL_SIZE / 2;
-        SIZE = CELL_SIZE / 2;
-        int boardWidth = COL * CELL_SIZE;
-        int boardHeight = ROW * CELL_SIZE;
-        LEFT = (width - boardWidth) / 2 + BORDER;
-        UP = (height - boardHeight) / 2 + BORDER;
+        CELL_SIZE = Math.min(width / (COL + 1), height / (ROW + 1));
+        BORDER = CELL_SIZE;
+        SIZE = Math.round(CELL_SIZE * 0.47f);
+
+        int boardWidth = (COL + 1) * CELL_SIZE;
+        int boardHeight = (ROW + 1) * CELL_SIZE;
+        int left = (width - boardWidth) / 2;
+        int top = (height - boardHeight) / 2;
+
+        LEFT = left + BORDER;
+        UP = top + BORDER;
         RIGHT = LEFT + (COL - 1) * CELL_SIZE;
         DOWN = UP + (ROW - 1) * CELL_SIZE;
 
-        panelBounds.set(LEFT - BORDER, UP - BORDER, RIGHT + BORDER, DOWN + BORDER);
+        panelBounds.set(left, top, left + boardWidth, top + boardHeight);
         panelRect.set(panelBounds);
-        panelRadius = CELL_SIZE / 2.5f;
+        float radius = CELL_SIZE / 2.5f;
         panelPath.reset();
-        panelPath.addRoundRect(panelRect, panelRadius, panelRadius, Path.Direction.CW);
+        panelPath.addRoundRect(panelRect, radius, radius, Path.Direction.CW);
     }
 
     public void drawBanCo(Canvas canvas) {
-        drawMain(canvas);
-        drawBorder(canvas);
-        drawX(canvas);
-        drawPlus(canvas);
-    }
-
-    private void drawPlus(Canvas canvas) {
-        drawPlus(canvas, 1, 2, 0);
-        drawPlus(canvas, 1, 7, 0);
-        drawPlus(canvas, 7, 7, 0);
-        drawPlus(canvas, 7, 2, 0);
-        for (int i = 1; i < 4; i++) {
-            drawPlus(canvas, i * 2, 3, 0);
-            drawPlus(canvas, i * 2, 6, 0);
-        }
-        drawPlus(canvas, 0, 3, 1);
-        drawPlus(canvas, 0, 6, 1);
-        drawPlus(canvas, 8, 3, 2);
-        drawPlus(canvas, 8, 6, 2);
-    }
-
-    private void drawMain(Canvas canvas) {
         canvas.save();
         canvas.clipPath(panelPath);
-        canvas.drawBitmap(imageban, null, panelBounds, paint);
+        canvas.drawBitmap(imageBoard, null, panelBounds, paint);
         canvas.restore();
-        paint.setColor(Color.rgb(51, 51, 51));
-        for (int i = 0; i < ROW; i++)
-            canvas.drawLine(LEFT, (i) * CELL_SIZE + UP, RIGHT, (i) * CELL_SIZE
-                    + UP, paint);
-        for (int i = 1; i < COL - 1; i++) {
-            canvas.drawLine((i) * CELL_SIZE + LEFT, UP, (i) * CELL_SIZE
-                    + LEFT, UP + 4 * CELL_SIZE, paint);
-            canvas.drawLine((i) * CELL_SIZE + LEFT, UP + 5 * CELL_SIZE, (i)
-                    * CELL_SIZE + LEFT, DOWN, paint);
-        }
-
     }
 
-    protected void drawX(Canvas canvas) {
-        paint.setStrokeWidth(2);
-        canvas.drawLine(LEFT + 3 * CELL_SIZE, UP, LEFT + 5 * CELL_SIZE, UP + 2
-                * CELL_SIZE, paint);
-        canvas.drawLine(LEFT + 5 * CELL_SIZE, UP, LEFT + 3 * CELL_SIZE, UP + 2
-                * CELL_SIZE, paint);
-        canvas.drawLine(LEFT + 3 * CELL_SIZE, DOWN, LEFT + 5 * CELL_SIZE, DOWN
-                - 2 * CELL_SIZE, paint);
-        canvas.drawLine(LEFT + 5 * CELL_SIZE, DOWN, LEFT + 3 * CELL_SIZE, DOWN
-                - 2 * CELL_SIZE, paint);
-    }
-
-    protected void drawBorder(Canvas canvas) {
-        int border = 5;
-        canvas.drawLine(LEFT, UP, LEFT, DOWN, paint);
-        canvas.drawLine(RIGHT, UP, RIGHT, DOWN, paint);
-
-        paint.setStyle(Paint.Style.STROKE);
-        // Dark rim around the wood, then the hairline that frames the playing grid itself.
-        paint.setStrokeWidth(CELL_SIZE / 12f);
-        paint.setColor(Color.rgb(74, 51, 32));
-        canvas.drawRoundRect(panelRect, panelRadius, panelRadius, paint);
-
-        paint.setStrokeWidth(4);
-        paint.setColor(Color.rgb(51, 51, 51));
-        float inner = panelRadius / 2f;
-        canvas.drawRoundRect(LEFT - border, UP - border, RIGHT + border, DOWN + border,
-                inner, inner, paint);
-
-        paint.setStyle(Paint.Style.FILL);
-        paint.setStrokeWidth(2);
-    }
-
-    protected void drawPlus(Canvas canvas, int x, int y, int pos) {
-        int border = 3;
-        int kc = CELL_SIZE / 4;
-        x = x * CELL_SIZE + LEFT;
-        y = y * CELL_SIZE + UP;
-        if (pos != 1) {
-            canvas.drawLine(x - border, y - border, x - kc, y - border, paint);
-            canvas.drawLine(x - border, y - border, x - border, y - kc, paint);
-
-            canvas.drawLine(x - border, y + border, x - kc, y + border, paint);
-            canvas.drawLine(x - border, y + border, x - border, y + kc, paint);
-        }
-        if (pos != 2) {
-            canvas.drawLine(x + border, y - border, x + kc, y - border, paint);
-            canvas.drawLine(x + border, y - border, x + border, y - kc, paint);
-
-            canvas.drawLine(x + border, y + border, x + kc, y + border, paint);
-            canvas.drawLine(x + border, y + border, x + border, y + kc, paint);
-        }
+    /** Faint squares on the two ends of the previous move; drawn under the pieces. */
+    public void drawLastMove(Canvas canvas, Point prev, Point curr) {
+        canvas.drawBitmap(imageLastMove, null, cellRect(prev), paint);
+        canvas.drawBitmap(imageLastMove, null, cellRect(curr), paint);
     }
 
     public void drawQuanCo(Canvas canvas, byte[][] cell) {
-        Bitmap[] pictureBox = {imagebk, imageba, imagebb, imagebn, imagebr,
-                imagebc, imagebp, imagerk, imagera, imagerb, imagern, imagerr,
-                imagerc, imagerp};
         for (int i = 0; i < ROW; i++)
             for (int j = 0; j < COL; j++) {
                 byte piece = cell[i][j];
                 if (piece != 0) {
-                    canvas.drawBitmap(pictureBox[piece - 8], null,
-                            makeRect(new Point(i, j)), new Paint());
+                    canvas.drawBitmap(pieces[piece - 8], null, pieceRect(i, j), paint);
                 }
             }
     }
 
     public void drawSelect(Canvas canvas, Point pos) {
-        canvas.drawBitmap(imagesel, null, makeRect(pos), new Paint());
+        canvas.drawBitmap(imageSelected, null, cellRect(pos), paint);
     }
 
-    public void drawAllPossibleMove(Canvas canvas, ArrayList<State> posibleMove) {
+    /** A green dot on empty targets, a red capture frame where an enemy piece can be taken. */
+    public void drawAllPossibleMove(Canvas canvas, ArrayList<State> posibleMove, byte[][] cell) {
         for (State state : posibleMove) {
-            int x = state.curr.x;
-            int y = state.curr.y;
-            int c = paint.getColor();
-            paint.setColor(Color.BLACK);
-            canvas.drawCircle(y * CELL_SIZE + LEFT, x * CELL_SIZE + UP,
-                    CELL_SIZE / 6f, paint);
-            paint.setColor(Color.WHITE);
-            canvas.drawCircle(y * CELL_SIZE + LEFT, x * CELL_SIZE + UP,
-                    CELL_SIZE / 8f, paint);
-            paint.setColor(c);
+            Point target = state.curr;
+            Bitmap marker = cell[target.x][target.y] == 0 ? imageMoveDot : imageCapture;
+            canvas.drawBitmap(marker, null, cellRect(target), paint);
         }
     }
 
-    private Rect makeRect(Point p) {
-        Rect selRect = new Rect();
-        selRect.left = p.y * CELL_SIZE + LEFT - SIZE;
-        selRect.top = p.x * CELL_SIZE + UP - SIZE;
-        selRect.right = p.y * CELL_SIZE + LEFT + SIZE;
-        selRect.bottom = p.x * CELL_SIZE + UP + SIZE;
-        return selRect;
+    /** One whole cell, centred on the intersection - the size the markers are drawn for. */
+    private Rect cellRect(Point p) {
+        int half = CELL_SIZE / 2;
+        int x = p.y * CELL_SIZE + LEFT;
+        int y = p.x * CELL_SIZE + UP;
+        cellRect.set(x - half, y - half, x + half, y + half);
+        return cellRect;
+    }
+
+    private Rect pieceRect(int row, int col) {
+        int x = col * CELL_SIZE + LEFT;
+        int y = row * CELL_SIZE + UP;
+        cellRect.set(x - SIZE, y - SIZE, x + SIZE, y + SIZE);
+        return cellRect;
     }
 }

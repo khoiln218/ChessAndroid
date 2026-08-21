@@ -348,6 +348,13 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
             game.board.currMove = pos.curr;
             game.board.cell[pos.prev.x][pos.prev.y] = pos.value1;
             game.board.cell[pos.curr.x][pos.curr.y] = pos.value2;
+            //the move that is now the latest one - or none left at all
+            if (game.board.listUndo.isEmpty()) {
+                game.clearLastMove();
+            } else {
+                State last = game.board.listUndo.get(game.board.listUndo.size() - 1);
+                game.showLastMove(last.prev, last.curr);
+            }
             //reset result
             game.isGameOver = false;
             game.invalidate();

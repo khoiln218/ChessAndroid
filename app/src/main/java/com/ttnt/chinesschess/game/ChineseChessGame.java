@@ -3,6 +3,7 @@ package com.ttnt.chinesschess.game;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Point;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -32,6 +33,12 @@ public class ChineseChessGame extends View {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private Listener listener;
+    /**
+     * Ends of the move that was actually played last. Board#prevMove doubles as "the square the
+     * player is holding", so it cannot be used for this - picking a piece up would wipe the mark.
+     */
+    private Point lastFrom;
+    private Point lastTo;
 
     /** Lets the activity drive the two side panels: whose clock runs, and when it stops. */
     public interface Listener {
@@ -64,7 +71,24 @@ public class ChineseChessGame extends View {
      * and restore a saved board - before either side is put on the clock.
      */
     public void start() {
+        if (board.move) {
+            // Restored game: the saved board still knows which move ended the last session.
+            showLastMove(board.prevMove, board.currMove);
+        }
         beginTurn();
+    }
+
+    /** Marks the two ends of the move just played, whichever side played it. */
+    public void showLastMove(Point from, Point to) {
+        lastFrom = new Point(from);
+        lastTo = new Point(to);
+        invalidate();
+    }
+
+    public void clearLastMove() {
+        lastFrom = null;
+        lastTo = null;
+        invalidate();
     }
 
     private void beginTurn() {
@@ -91,13 +115,13 @@ public class ChineseChessGame extends View {
     }
 
     /**
-     * The board is 9 files by 10 ranks, so it only ever needs a 9:10 box. Reporting that instead
+     * The artwork is a 10:11 box - the 9 x 10 grid plus a cell of margin. Reporting that instead
      * of swallowing every spare pixel lets the layout park the two player cards right against it.
      */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
-        int height = width * Graphics.ROW / Graphics.COL;
+        int height = width * (Graphics.ROW + 1) / (Graphics.COL + 1);
         if (MeasureSpec.getMode(heightMeasureSpec) != MeasureSpec.UNSPECIFIED) {
             height = Math.min(height, MeasureSpec.getSize(heightMeasureSpec));
         }
@@ -113,14 +137,13 @@ public class ChineseChessGame extends View {
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
         graph.drawBanCo(canvas);
+        if (lastFrom != null) {
+            graph.drawLastMove(canvas, lastFrom, lastTo);
+        }
         graph.drawQuanCo(canvas, board.cell);
         if (board.isCheckSelect(board.prevMove.x, board.prevMove.y) && board.select) {
             graph.drawSelect(canvas, board.prevMove);
-            graph.drawAllPossibleMove(canvas, board.allMove(board.prevMove));
-        }
-        if (board.move) {
-            graph.drawSelect(canvas, board.currMove);
-            graph.drawSelect(canvas, board.prevMove);
+            graph.drawAllPossibleMove(canvas, board.allMove(board.prevMove), board.cell);
         }
     }
 
@@ -167,6 +190,8 @@ public class ChineseChessGame extends View {
     }
 
     public void move(int x, int y) {
+        lastFrom = new Point(board.prevMove);
+        lastTo = new Point(x, y);
         board.moveTo(x, y);
         invalidate();
         switchPlayer();
