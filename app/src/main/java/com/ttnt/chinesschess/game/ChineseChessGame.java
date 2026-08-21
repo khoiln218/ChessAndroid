@@ -6,16 +6,11 @@ import android.graphics.Canvas;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 
 import com.ttnt.chinesschess.chess.Board;
 import com.ttnt.chinesschess.chess.State;
@@ -26,7 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @SuppressLint("ViewConstructor")
-public class ChinessChessGame extends View {
+public class ChineseChessGame extends View {
     _AI ai;
     Graphics graph;
     public Board board;
@@ -36,18 +31,69 @@ public class ChinessChessGame extends View {
     /** Single thread so background work stays serialized, like AsyncTask#execute() used to be. */
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private Listener listener;
 
-    public ChinessChessGame(Context context, int level, boolean turn, int w) {
+    /** Lets the activity drive the two side panels: whose clock runs, and when it stops. */
+    public interface Listener {
+        /** A new turn begins; {@code computerToMove} tells which side panel owns the clock. */
+        void onTurnStarted(boolean computerToMove);
+
+        /** The AI started or finished searching, so its panel can show the sweeping ring. */
+        void onThinkingChanged(boolean thinking);
+
+        /** The game ended; no clock runs any more. */
+        void onGameOver(boolean playerWon);
+    }
+
+    public ChineseChessGame(Context context, int level, boolean turn) {
         super(context);
         this.turn = turn;
-        graph = new Graphics(getResources(), w);
+        graph = new Graphics(getResources());
         board = new Board(!turn);
         ai = new _AI(board, level);
         setFocusable(true);
-        if (!turn) {
+        setFocusableInTouchMode(true);
+    }
+
+    public void setListener(Listener listener) {
+        this.listener = listener;
+    }
+
+    /**
+     * Starts the first turn. Kept out of the constructor so the activity can attach its listener -
+     * and restore a saved board - before either side is put on the clock.
+     */
+    public void start() {
+        beginTurn();
+    }
+
+    private void beginTurn() {
+        if (listener != null) {
+            listener.onTurnStarted(board.RED);
+        }
+        if (board.RED) {
             computer();
         }
-        setFocusableInTouchMode(true);
+    }
+
+    /** Called by the activity when a side runs out of time: whoever is to move loses. */
+    public void loseByTimeout() {
+        if (isGameOver) return;
+        isGameOver = true;
+        boolean playerWon = board.RED;
+        Toast.makeText(getContext(),
+                playerWon ? "Computer ran out of time. You Win!" : "Time is up. You Lose!",
+                Toast.LENGTH_SHORT).show();
+        if (listener != null) {
+            listener.onThinkingChanged(false);
+            listener.onGameOver(playerWon);
+        }
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        graph.setSize(w, h);
     }
 
     @Override
@@ -76,10 +122,12 @@ public class ChinessChessGame extends View {
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             if (!isGameOver && !board.RED) {
-                int x = (int) (event.getY() - Graphics.UP + (float) Graphics.CELL_SIZE / 2)
-                        / Graphics.CELL_SIZE;
-                int y = (int) (event.getX() - Graphics.LEFT + (float) Graphics.CELL_SIZE / 2)
-                        / Graphics.CELL_SIZE;
+                // floor, not truncation: the board is centred, so taps above/left of it give a
+                // negative offset that must not round back into row/column 0.
+                int x = (int) Math.floor((event.getY() - Graphics.UP + Graphics.CELL_SIZE / 2f)
+                        / Graphics.CELL_SIZE);
+                int y = (int) Math.floor((event.getX() - Graphics.LEFT + Graphics.CELL_SIZE / 2f)
+                        / Graphics.CELL_SIZE);
                 if (x < 0 || x >= Graphics.ROW || y < 0 || y >= Graphics.COL)
                     return false;
 
@@ -117,54 +165,33 @@ public class ChinessChessGame extends View {
                 isGameOver = result;
                 if (isGameOver) {
                     showGameOver();
-                } else if (board.RED) {
-                    computer();
+                    if (listener != null) {
+                        listener.onGameOver(board.RED);
+                    }
+                } else {
+                    beginTurn();
                 }
             });
         });
     }
 
     private void computer() {
-        final AlertDialog dialog = createThinkingDialog();
-        dialog.show();
+        if (listener != null) {
+            listener.onThinkingChanged(true);
+        }
         executor.execute(() -> {
             final State pos = ai.generateMove(board.RED);
-            board.prevMove = pos.prev;
-            board.currMove = pos.curr;
             mainHandler.post(() -> {
-                move(pos.curr.x, pos.curr.y);
-                if (dialog.isShowing()) {
-                    dialog.dismiss();
+                if (listener != null) {
+                    listener.onThinkingChanged(false);
                 }
+                // The clock may have run out while the search was still running.
+                if (isGameOver) return;
+                board.prevMove = pos.prev;
+                board.currMove = pos.curr;
+                move(pos.curr.x, pos.curr.y);
             });
         });
-    }
-
-    /** Replacement for the deprecated ProgressDialog: a spinner plus a label in an AlertDialog. */
-    @SuppressLint("SetTextI18n")
-    private AlertDialog createThinkingDialog() {
-        Context context = getContext();
-        int padding = Math.round(24 * getResources().getDisplayMetrics().density);
-
-        LinearLayout content = new LinearLayout(context);
-        content.setOrientation(LinearLayout.HORIZONTAL);
-        content.setGravity(Gravity.CENTER_VERTICAL);
-        content.setPadding(padding, padding, padding, padding);
-
-        content.addView(new ProgressBar(context), new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        TextView message = new TextView(context);
-        message.setText("Thinking...");
-        LinearLayout.LayoutParams messageParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        messageParams.leftMargin = padding;
-        content.addView(message, messageParams);
-
-        return new AlertDialog.Builder(context)
-                .setView(content)
-                .setCancelable(false)
-                .create();
     }
 
     void showGameOver() {

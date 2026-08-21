@@ -1,16 +1,84 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/game_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="90dp"
-        android:scaleType="centerInside"
-        android:src="@drawable/logo"
-        tools:ignore="ContentDescription" />
+    <!-- Fixed-height slot: the banner is 50dp tall, so reserving it up front keeps the board from
+         jumping down when the ad finally arrives. -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/ad_banner_height"
+        android:background="@color/adBackground">
+
+        <TextView
+            android:id="@+id/ad_placeholder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/ad_placeholder"
+            android:textColor="@color/adPlaceholderText"
+            android:textSize="12sp" />
+
+        <com.google.android.gms.ads.AdView
+            android:id="@+id/ad_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            ads:adSize="BANNER"
+            ads:adUnitId="@string/banner_ad_unit_id" />
+    </FrameLayout>
+
+    <!-- Computer side -->
+    <LinearLayout
+        android:id="@+id/computer_side"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/sideIdle"
+        android:gravity="start|center_vertical"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <com.ttnt.chinesschess.game.TurnTimerView
+            android:id="@+id/computer_timer"
+            android:layout_width="56dp"
+            android:layout_height="56dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:gravity="start"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/computer_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/computer_label"
+                android:textColor="@color/sideRed"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/computer_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/status_waiting"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/menu_button"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/menu_label"
+            android:src="@drawable/ic_more_vert" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/layout"
@@ -19,27 +87,43 @@
         android:layout_weight="1"
         android:orientation="vertical" />
 
+    <!-- Player side -->
     <LinearLayout
+        android:id="@+id/player_side"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:background="@drawable/down"
-        android:gravity="center">
+        android:layout_height="wrap_content"
+        android:background="@color/sideIdle"
+        android:gravity="end|center_vertical"
+        android:orientation="horizontal"
+        android:padding="8dp">
 
-        <Button
-            android:id="@+id/back_button"
-            android:layout_width="160dp"
-            android:layout_height="60dp"
-            android:layout_gravity="center"
-            android:text="@string/back_label"
-            tools:ignore="ButtonStyle" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:gravity="end"
+            android:orientation="vertical">
 
-        <Button
-            android:id="@+id/undo_button"
-            android:layout_width="160dp"
-            android:layout_height="60dp"
-            android:layout_gravity="center"
-            android:text="@string/undo_label"
-            tools:ignore="ButtonStyle" />
+            <TextView
+                android:id="@+id/player_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/player_label"
+                android:textColor="@color/sideBlack"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/player_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/status_waiting"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <com.ttnt.chinesschess.game.TurnTimerView
+            android:id="@+id/player_timer"
+            android:layout_width="56dp"
+            android:layout_height="56dp" />
     </LinearLayout>
-
 </LinearLayout>

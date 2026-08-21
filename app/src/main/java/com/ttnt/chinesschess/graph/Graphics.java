@@ -45,7 +45,7 @@ public class Graphics {
     protected Bitmap imageban;
     protected Paint paint;
 
-    public Graphics(Resources res, int width) {
+    public Graphics(Resources res) {
         paint = new Paint();
         paint.setStrokeWidth(2);
         imageLogo = BitmapFactory.decodeResource(res, R.drawable.logo);
@@ -67,13 +67,23 @@ public class Graphics {
         imageclr = BitmapFactory.decodeResource(res, R.drawable.clr);
         imageban = BitmapFactory.decodeResource(res, R.drawable.banco);
 
-        CELL_SIZE = width / COL;
-        BORDER = (CELL_SIZE + width % COL) / 2;
-        LEFT = BORDER;
-        UP = BORDER;
+    }
+
+    /**
+     * Fits the board inside a view of {@code width} x {@code height} pixels and centres it on both
+     * axes: the cell size is limited by whichever axis is tighter, then the leftover space is split
+     * evenly on each side.
+     */
+    public void setSize(int width, int height) {
+        CELL_SIZE = Math.min(width / COL, height / ROW);
+        BORDER = CELL_SIZE / 2;
+        SIZE = CELL_SIZE / 2;
+        int boardWidth = COL * CELL_SIZE;
+        int boardHeight = ROW * CELL_SIZE;
+        LEFT = (width - boardWidth) / 2 + BORDER;
+        UP = (height - boardHeight) / 2 + BORDER;
         RIGHT = LEFT + (COL - 1) * CELL_SIZE;
         DOWN = UP + (ROW - 1) * CELL_SIZE;
-        SIZE = res.getDimensionPixelOffset(R.dimen.padding);
     }
 
     public void drawBanCo(Canvas canvas) {
@@ -107,10 +117,10 @@ public class Graphics {
             canvas.drawLine(LEFT, (i) * CELL_SIZE + UP, RIGHT, (i) * CELL_SIZE
                     + UP, paint);
         for (int i = 1; i < COL - 1; i++) {
-            canvas.drawLine((i) * CELL_SIZE + BORDER, UP, (i) * CELL_SIZE
-                    + BORDER, UP + 4 * CELL_SIZE, paint);
-            canvas.drawLine((i) * CELL_SIZE + BORDER, UP + 5 * CELL_SIZE, (i)
-                    * CELL_SIZE + BORDER, DOWN, paint);
+            canvas.drawLine((i) * CELL_SIZE + LEFT, UP, (i) * CELL_SIZE
+                    + LEFT, UP + 4 * CELL_SIZE, paint);
+            canvas.drawLine((i) * CELL_SIZE + LEFT, UP + 5 * CELL_SIZE, (i)
+                    * CELL_SIZE + LEFT, DOWN, paint);
         }
 
     }
@@ -189,9 +199,11 @@ public class Graphics {
             int y = state.curr.y;
             int c = paint.getColor();
             paint.setColor(Color.BLACK);
-            canvas.drawCircle(y * CELL_SIZE + BORDER, x * CELL_SIZE + BORDER, 18, paint);
+            canvas.drawCircle(y * CELL_SIZE + LEFT, x * CELL_SIZE + UP,
+                    CELL_SIZE / 6f, paint);
             paint.setColor(Color.WHITE);
-            canvas.drawCircle(y * CELL_SIZE + BORDER, x * CELL_SIZE + BORDER, 14, paint);
+            canvas.drawCircle(y * CELL_SIZE + LEFT, x * CELL_SIZE + UP,
+                    CELL_SIZE / 8f, paint);
             paint.setColor(c);
         }
     }

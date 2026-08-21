@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/action_undo"
+        android:icon="@drawable/ic_undo"
+        android:title="@string/undo_label" />
+
+    <item
+        android:id="@+id/action_back"
+        android:icon="@drawable/ic_exit"
+        android:title="@string/back_label" />
+
+</menu>

@@ -3,4 +3,12 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="sideIdle">#F2F2F2</color>
+    <color name="sideActive">#FFF4CC</color>
+    <color name="sideRed">#C62828</color>
+    <color name="sideBlack">#212121</color>
+
+    <color name="adBackground">#EEEEEE</color>
+    <color name="adPlaceholderText">#9E9E9E</color>
 </resources>
