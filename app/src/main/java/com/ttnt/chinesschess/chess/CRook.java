@@ -1,4 +1,4 @@
-package com.quanpk.chinesschess.chess;
+package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 
@@ -25,7 +25,7 @@ public class CRook extends Piece {
 
     @Override
     public ArrayList<State> findAllPossibleMoves() {
-        allPossibleMove = new ArrayList<State>();
+        allPossibleMove = new ArrayList<>();
         int x = CurrMove.x;
         int y = CurrMove.y;
         for (int i = y + 1; i <= 8; i++) {
@@ -57,15 +57,12 @@ public class CRook extends Piece {
         if (val2 == 0 || ((RED && val2 >= 8 && val2 <= 14) || (!RED && val2 > 14))) {
             doMove(x, y);
             ArrayList<Point> arr = board.findPieces(RED);
-            if (!checkProject(board, arr)) {
+            if (checkProject(board, arr)) {
                 allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
             }
             reMove(x, y, val2);
         }
-        if (val2 != 0) {
-            return true;
-        }
-        return false;
+        return val2 != 0;
     }
 
     @Override
@@ -85,9 +82,7 @@ public class CRook extends Piece {
                     }
                 }
             }
-            if (count == 0) {
-                return true;
-            }
+            return count == 0;
         }
         return false;
     }

@@ -1,4 +1,4 @@
-package com.quanpk.chinesschess.chess;
+package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 
@@ -25,7 +25,7 @@ public class CElephant extends Piece {
 
     @Override
     public ArrayList<State> findAllPossibleMoves() {
-        allPossibleMove = new ArrayList<State>();
+        allPossibleMove = new ArrayList<>();
         byte[] dx = {2, 2, -2, -2};
         byte[] dy = {2, -2, 2, -2};
         for (int i = 0; i < dx.length; i++) {
@@ -37,7 +37,7 @@ public class CElephant extends Piece {
                 if (((RED && ((val2 >= 8 && val2 <= 14) || val2 == 0) && x <= 4) || (!RED && (val2 > 14 || val2 == 0) && x >= 5)) && isCheck(new Point(x, y))) {
                     doMove(x, y);
                     ArrayList<Point> arr = board.findPieces(RED);
-                    if (!checkProject(board, arr)) {
+                    if (checkProject(board, arr)) {
                         allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
                     }
                     reMove(x, y, val2);
@@ -53,23 +53,15 @@ public class CElephant extends Piece {
         if (Math.abs(dong) == 2 && Math.abs(cot) == 2) {
             if (dong > 0) {
                 if (cot > 0) {
-                    if (board.cell[CurrMove.x + 1][CurrMove.y + 1] == 0) {
-                        return true;
-                    }
+                    return board.cell[CurrMove.x + 1][CurrMove.y + 1] == 0;
                 } else {
-                    if (board.cell[CurrMove.x + 1][CurrMove.y - 1] == 0) {
-                        return true;
-                    }
+                    return board.cell[CurrMove.x + 1][CurrMove.y - 1] == 0;
                 }
             } else {
                 if (cot > 0) {
-                    if (board.cell[CurrMove.x - 1][CurrMove.y + 1] == 0) {
-                        return true;
-                    }
+                    return board.cell[CurrMove.x - 1][CurrMove.y + 1] == 0;
                 } else {
-                    if (board.cell[CurrMove.x - 1][CurrMove.y - 1] == 0) {
-                        return true;
-                    }
+                    return board.cell[CurrMove.x - 1][CurrMove.y - 1] == 0;
                 }
             }
         }

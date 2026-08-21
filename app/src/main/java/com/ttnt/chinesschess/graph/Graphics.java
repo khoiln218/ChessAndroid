@@ -1,21 +1,20 @@
-package com.quanpk.chinesschess.graph;
+package com.ttnt.chinesschess.graph;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
 
-import com.quanpk.chinesschess.R;
-import com.quanpk.chinesschess.chess.State;
+import com.ttnt.chinesschess.R;
+import com.ttnt.chinesschess.chess.State;
 
 import java.util.ArrayList;
 
-public class GraphicsNew {
+public class Graphics {
 
     public static int CELL_SIZE;
     public static int BORDER;
@@ -46,7 +45,7 @@ public class GraphicsNew {
     protected Bitmap imageban;
     protected Paint paint;
 
-    public GraphicsNew(Resources res, int width, int height) {
+    public Graphics(Resources res, int width) {
         paint = new Paint();
         paint.setStrokeWidth(2);
         imageLogo = BitmapFactory.decodeResource(res, R.drawable.logo);

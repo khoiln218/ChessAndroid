@@ -1,4 +1,4 @@
-package com.quanpk.chinesschess.chess;
+package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 
@@ -30,7 +30,7 @@ public final class Board {
     public ArrayList<State> listUndo;
 
     public Board(boolean side) {
-        listUndo = new ArrayList<State>();
+        listUndo = new ArrayList<>();
         setBoard(cellStartup);
         currMove = new Point(-1, -1);
         prevMove = new Point(-1, -1);
@@ -40,7 +40,7 @@ public final class Board {
     }
 
     public Board(Board b) {
-        listUndo = new ArrayList<State>();
+        listUndo = new ArrayList<>();
         setBoard(b.cell);
         this.currMove = new Point(b.currMove);
         this.prevMove = new Point(b.prevMove);
@@ -52,9 +52,7 @@ public final class Board {
     public void setBoard(byte[][] board) {
         cell = new byte[ROW][COL];
         for (int i = 0; i < ROW; i++) {
-            for (int j = 0; j < COL; j++) {
-                cell[i][j] = board[i][j];
-            }
+            System.arraycopy(board[i], 0, cell[i], 0, COL);
         }
     }
 
@@ -79,41 +77,21 @@ public final class Board {
     public Piece getPiece(int x, int y) {
         Piece piece = null;
         byte value = getValue(x, y);
-        switch (value) {
-            case 8:
-            case 15:
-                piece = new CKing(this, new Point(x, y));
-                break;
-            case 9:
-            case 16:
-                piece = new CBishop(this, new Point(x, y));
-                break;
-            case 10:
-            case 17:
-                piece = new CElephant(this, new Point(x, y));
-                break;
-            case 11:
-            case 18:
-                piece = new CKnight(this, new Point(x, y));
-                break;
-            case 12:
-            case 19:
-                piece = new CRook(this, new Point(x, y));
-                break;
-            case 13:
-            case 20:
-                piece = new CCannon(this, new Point(x, y));
-                break;
-            case 14:
-            case 21:
-                piece = new CPawn(this, new Point(x, y));
-                break;
-        }
+        piece = switch (value) {
+            case 8, 15 -> new CKing(this, new Point(x, y));
+            case 9, 16 -> new CBishop(this, new Point(x, y));
+            case 10, 17 -> new CElephant(this, new Point(x, y));
+            case 11, 18 -> new CKnight(this, new Point(x, y));
+            case 12, 19 -> new CRook(this, new Point(x, y));
+            case 13, 20 -> new CCannon(this, new Point(x, y));
+            case 14, 21 -> new CPawn(this, new Point(x, y));
+            default -> piece;
+        };
         return piece;
     }
 
     public ArrayList<Point> findPieces(boolean _RED) {
-        ArrayList<Point> allPiece = new ArrayList<Point>();
+        ArrayList<Point> allPiece = new ArrayList<>();
         allPiece.add(0, new Point(-1, -1));
         for (int i = 0; i < ROW; i++) {
             for (int j = 0; j < COL; j++) {
@@ -133,7 +111,7 @@ public final class Board {
     }
 
     public ArrayList<State> allMove(Point pos) {
-        ArrayList<State> arrMoves = new ArrayList<State>();
+        ArrayList<State> arrMoves = new ArrayList<>();
         byte val = getValue(pos.x, pos.y);
         switch (val) {
             case 8:
@@ -177,8 +155,7 @@ public final class Board {
 
     public ArrayList<State> allMoves(boolean _RED) {
         ArrayList<Point> allPiece = findPieces(_RED);
-        ArrayList<State> arrMoves = new ArrayList<State>();
-        allPiece.get(0);
+        ArrayList<State> arrMoves = new ArrayList<>();
         for (int i = 1; i < allPiece.size(); i++) {
             arrMoves.addAll(allMove(allPiece.get(i)));
         }
@@ -186,49 +163,42 @@ public final class Board {
     }
 
     public boolean isGameOver(boolean _RED) {
-        ArrayList<Point> allpiece = findPieces(_RED);
-        allpiece.get(0);
-        for (int i = 1; i < allpiece.size(); i++) {
-            Point pos = allpiece.get(i);
+        ArrayList<Point> allPiece = findPieces(_RED);
+        for (int i = 1; i < allPiece.size(); i++) {
+            Point pos = allPiece.get(i);
             ArrayList<State> arrMoves = null;
             byte val = cell[pos.x][pos.y];
-            switch (val) {
-                case 8:
-                case 15:
+            arrMoves = switch (val) {
+                case 8, 15 -> {
                     CKing king = new CKing(this, pos);
-                    arrMoves = king.findAllPossibleMoves();
-                    break;
-                case 9:
-                case 16:
+                    yield king.findAllPossibleMoves();
+                }
+                case 9, 16 -> {
                     CBishop bishop = new CBishop(this, pos);
-                    arrMoves = bishop.findAllPossibleMoves();
-                    break;
-                case 10:
-                case 17:
+                    yield bishop.findAllPossibleMoves();
+                }
+                case 10, 17 -> {
                     CElephant elephant = new CElephant(this, pos);
-                    arrMoves = elephant.findAllPossibleMoves();
-                    break;
-                case 11:
-                case 18:
+                    yield elephant.findAllPossibleMoves();
+                }
+                case 11, 18 -> {
                     CKnight knight = new CKnight(this, pos);
-                    arrMoves = knight.findAllPossibleMoves();
-                    break;
-                case 12:
-                case 19:
+                    yield knight.findAllPossibleMoves();
+                }
+                case 12, 19 -> {
                     CRook rook = new CRook(this, pos);
-                    arrMoves = rook.findAllPossibleMoves();
-                    break;
-                case 13:
-                case 20:
+                    yield rook.findAllPossibleMoves();
+                }
+                case 13, 20 -> {
                     CCannon cannon = new CCannon(this, pos);
-                    arrMoves = cannon.findAllPossibleMoves();
-                    break;
-                case 14:
-                case 21:
+                    yield cannon.findAllPossibleMoves();
+                }
+                case 14, 21 -> {
                     CPawn pawn = new CPawn(this, pos);
-                    arrMoves = pawn.findAllPossibleMoves();
-                    break;
-            }
+                    yield pawn.findAllPossibleMoves();
+                }
+                default -> arrMoves;
+            };
             if (arrMoves != null && !arrMoves.isEmpty()) {
                 return false;
             }

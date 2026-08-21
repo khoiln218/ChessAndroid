@@ -1,4 +1,4 @@
-package com.quanpk.chinesschess.chess;
+package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 

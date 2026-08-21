@@ -1,4 +1,4 @@
-package com.quanpk.chinesschess.chess;
+package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 
@@ -65,7 +65,7 @@ public abstract class Piece {
                 }
             }
         } catch (Exception e) {
-            System.out.println("ERROR checkMove, Piece: " + e.toString());
+            System.out.println("ERROR checkMove, Piece: " + e);
         }
         return false;
     }
@@ -74,54 +74,48 @@ public abstract class Piece {
         try {
             Point pKing = arr.get(0);
             for (int i = 1; i < arr.size(); i++) {
-                boolean isCheck = false;
+                boolean isCheck;
                 Point pos = arr.get(i);
                 byte value = board1.cell[pos.x][pos.y];
-                switch (value) {
-                    case 8:
-                    case 15:
+                isCheck = switch (value) {
+                    case 8, 15 -> {
                         CKing king = new CKing(board1, pos);
-                        isCheck = king.checkProject(pKing);
-                        break;
-                    case 9:
-                    case 16:
+                        yield king.checkProject(pKing);
+                    }
+                    case 9, 16 -> {
                         CBishop bishop = new CBishop(board1, pos);
-                        isCheck = bishop.checkProject(pKing);
-                        break;
-                    case 10:
-                    case 17:
+                        yield bishop.checkProject(pKing);
+                    }
+                    case 10, 17 -> {
                         CElephant elephant = new CElephant(board1, pos);
-                        isCheck = elephant.checkProject(pKing);
-                        break;
-                    case 11:
-                    case 18:
+                        yield elephant.checkProject(pKing);
+                    }
+                    case 11, 18 -> {
                         CKnight knight = new CKnight(board1, pos);
-                        isCheck = knight.checkProject(pKing);
-                        break;
-                    case 12:
-                    case 19:
+                        yield knight.checkProject(pKing);
+                    }
+                    case 12, 19 -> {
                         CRook rook = new CRook(board1, pos);
-                        isCheck = rook.checkProject(pKing);
-                        break;
-                    case 13:
-                    case 20:
+                        yield rook.checkProject(pKing);
+                    }
+                    case 13, 20 -> {
                         CCannon cannon = new CCannon(board1, pos);
-                        isCheck = cannon.checkProject(pKing);
-                        break;
-                    case 14:
-                    case 21:
+                        yield cannon.checkProject(pKing);
+                    }
+                    case 14, 21 -> {
                         CPawn pawn = new CPawn(board1, pos);
-                        isCheck = pawn.checkProject(pKing);
-                        break;
-                }
+                        yield pawn.checkProject(pKing);
+                    }
+                    default -> false;
+                };
                 if (isCheck) {
-                    return true;
+                    return false;
                 }
             }
         } catch (Exception e) {
-            System.out.println("ERROR checkProject, Piece: " + e.toString());
+            System.out.println("ERROR checkProject, Piece: " + e);
         }
-        return false;
+        return true;
     }
 
     protected void doMove(int x, int y) {

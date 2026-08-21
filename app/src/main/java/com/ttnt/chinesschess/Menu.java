@@ -1,6 +1,5 @@
-package com.quanpk.chinesschess;
+package com.ttnt.chinesschess;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -19,15 +18,15 @@ public class Menu extends AppCompatActivity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu);
 
-        Button newGame = (Button) findViewById(R.id.new_button);
+        Button newGame = findViewById(R.id.new_button);
         newGame.setOnClickListener(this);
-        Button continueView = (Button) findViewById(R.id.continue_button);
+        Button continueView = findViewById(R.id.continue_button);
         continueView.setOnClickListener(this);
-        Button levelView = (Button) findViewById(R.id.level_button);
+        Button levelView = findViewById(R.id.level_button);
         levelView.setOnClickListener(this);
-        Button aboutView = (Button) findViewById(R.id.about_button);
+        Button aboutView = findViewById(R.id.about_button);
         aboutView.setOnClickListener(this);
-        Button exiView = (Button) findViewById(R.id.exit_button);
+        Button exiView = findViewById(R.id.exit_button);
         exiView.setOnClickListener(this);
     }
 
@@ -52,23 +51,16 @@ public class Menu extends AppCompatActivity implements OnClickListener {
 
     private void openNewGameDialog() {
         new AlertDialog.Builder(this).setTitle(R.string.new_game_title)
-                .setItems(R.array.select, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialoginterface, int i) {
-                        Intent newGame = new Intent(Menu.this, Game.class);
-                        newGame.putExtra("turn_game", i);
-                        if (level < 0 || level > 1) level = 1;
-                        newGame.putExtra("level_game", level + 1);
-                        startActivity(newGame);
-                    }
+                .setItems(R.array.select, (dialoginterface, i) -> {
+                    Intent newGame = new Intent(Menu.this, Game.class);
+                    newGame.putExtra("turn_game", i);
+                    newGame.putExtra("level_game", level);
+                    startActivity(newGame);
                 }).show();
     }
 
     private void openLevelDialog() {
         new AlertDialog.Builder(this).setTitle(R.string.level_title)
-                .setItems(R.array.level, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialoginterface, int i) {
-                        level = i;
-                    }
-                }).show();
+                .setItems(R.array.level, (dialoginterface, i) -> level = i + 1).show();
     }
 }

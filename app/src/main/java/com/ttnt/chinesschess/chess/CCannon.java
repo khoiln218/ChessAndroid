@@ -1,4 +1,4 @@
-package com.quanpk.chinesschess.chess;
+package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 
@@ -25,7 +25,7 @@ public class CCannon extends Piece {
 
     @Override
     public ArrayList<State> findAllPossibleMoves() {
-        allPossibleMove = new ArrayList<State>();
+        allPossibleMove = new ArrayList<>();
         int x = CurrMove.x;
         int y = CurrMove.y;
         for (int i = y + 1; i <= 8; i++) {
@@ -106,7 +106,7 @@ public class CCannon extends Piece {
     void getCannonMove3(int x, int y, byte val1, byte val2) {
         doMove(x, y);
         ArrayList<Point> arr = board.findPieces(RED);
-        if (!checkProject(board, arr)) {
+        if (checkProject(board, arr)) {
             allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
         }
         reMove(x, y, val2);
@@ -129,9 +129,7 @@ public class CCannon extends Piece {
                     }
                 }
             }
-            if (count == 1) {
-                return true;
-            }
+            return count == 1;
         }
         return false;
     }

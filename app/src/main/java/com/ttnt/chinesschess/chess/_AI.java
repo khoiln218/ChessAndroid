@@ -1,32 +1,29 @@
-package com.quanpk.chinesschess.chess;
+package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 
 import java.util.ArrayList;
-import java.util.Random;
 
 public class _AI {
 
     Board board;
     Board clone;
-    private int maxDepth = 2 * 2;
+    private final int maxDepth;
     private State bestMove;
-
-    public _AI(Board b) {
-        this.board = b;
-    }
 
     public _AI(Board b, int depth) {
         this.board = b;
-        maxDepth = depth * 2;
+        // A depth of 0 never reaches the root of alphaBeta(), so bestMove would stay null.
+        maxDepth = Math.max(1, depth) * 2;
     }
 
-    int bonous(boolean side) {
+    int bonus(boolean side) {
 
-        int materialNumber[][] = {{5, 2, 2, 2, 2, 2, 1},
+        int[][] materialNumber = {{5, 2, 2, 2, 2, 2, 1},
                 {5, 2, 2, 2, 2, 2, 1}};
-        int s, bn[][] = {{-2, -3, -3, -4, -4, -5, 0},
-                {-2, -3, -3, -4, -4, -5, 0}};
+        int s;
+        int[][] bn = {{-2, -3, -3, -4, -4, -5, 0},
+                        {-2, -3, -3, -4, -4, -5, 0}};
 
         for (int i = 0; i < 2; i++) {
             if (materialNumber[i][1] < 2) {
@@ -127,7 +124,7 @@ public class _AI {
         if (!side) {
             s = -s;
         }
-        return s + bonous(side);
+        return s + bonus(side);
     }
 
     void doMove(State state) {
