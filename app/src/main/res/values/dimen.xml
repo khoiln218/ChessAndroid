@@ -2,4 +2,6 @@
 <resources>
     <!-- Height of an AdSize.BANNER slot; keep in sync with the adSize in game.xml. -->
     <dimen name="ad_banner_height">60dp</dimen>
+    <!-- The generals in the side panels and the result card are drawn at this size. -->
+    <dimen name="avatar_piece">96dp</dimen>
 </resources>

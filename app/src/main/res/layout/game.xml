@@ -15,19 +15,7 @@
         android:layout_marginStart="12dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="12dp"
-        android:layout_marginBottom="24dp"
-        android:background="@drawable/bg_ad_slot">
-
-        <TextView
-            android:id="@+id/ad_placeholder"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:letterSpacing="0.15"
-            android:text="@string/ad_placeholder"
-            android:textColor="@color/adPlaceholderText"
-            android:textSize="11sp" />
-    </FrameLayout>
+        android:layout_marginBottom="24dp"/>
 
     <View
         android:layout_width="match_parent"
@@ -52,11 +40,11 @@
         android:paddingBottom="8dp">
 
         <ImageView
+            android:id="@+id/computer_avatar"
             android:layout_width="46dp"
             android:layout_height="46dp"
             android:background="@drawable/bg_avatar_red"
             android:padding="5dp"
-            android:src="@drawable/red_tuong"
             tools:ignore="ContentDescription" />
 
         <LinearLayout
@@ -164,11 +152,11 @@
         </LinearLayout>
 
         <ImageView
+            android:id="@+id/player_avatar"
             android:layout_width="46dp"
             android:layout_height="46dp"
             android:background="@drawable/bg_avatar_black"
             android:padding="5dp"
-            android:src="@drawable/black_tuong"
             tools:ignore="ContentDescription" />
     </LinearLayout>
 

@@ -16,7 +16,6 @@
         android:layout_height="88dp"
         android:background="@drawable/bg_avatar_black"
         android:padding="8dp"
-        android:src="@drawable/black_tuong"
         tools:ignore="ContentDescription" />
 
     <TextView

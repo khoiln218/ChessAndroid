@@ -2,7 +2,6 @@
 <resources>
 
     <string name="app_name">CoTuong AI</string>
-    <string name="main_title">Co tuong</string>
     <string name="new_game_label">New Game</string>
     <string name="continue_label">Continue</string>
     <string name="level_label">Level</string>
@@ -23,14 +22,21 @@
     <string name="status_thinking">Đang suy nghĩ…</string>
     <string name="status_waiting">Chờ đối thủ</string>
     <string name="status_finished">Ván đấu kết thúc</string>
-    <string name="timeout_player">Hết giờ! Bạn thua.</string>
-    <string name="timeout_computer">Máy hết giờ! Bạn thắng.</string>
 
     <!-- Google's public test ids: swap both this and the manifest APPLICATION_ID for the real
          AdMob ids before publishing, otherwise the account can be suspended for invalid traffic. -->
     <string name="ad_placeholder">Quảng cáo</string>
     <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
     <string name="banner_ad_unit_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+
+    <string name="theme_label">Board</string>
+    <string name="theme_title">Select board</string>
+    <!-- The five elements, each named for the material its set is cut from. -->
+    <string name="theme_kim">Kim (Metal)</string>
+    <string name="theme_moc">Mộc (Wood)</string>
+    <string name="theme_thuy">Thủy (Ice)</string>
+    <string name="theme_hoa">Hỏa (Fire)</string>
+    <string name="theme_tho">Thổ (Earth)</string>
 
     <string name="menu_label">Menu</string>
 

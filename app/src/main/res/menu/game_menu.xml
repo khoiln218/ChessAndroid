@@ -7,6 +7,11 @@
         android:title="@string/undo_label" />
 
     <item
+        android:id="@+id/action_theme"
+        android:icon="@drawable/ic_theme"
+        android:title="@string/theme_label" />
+
+    <item
         android:id="@+id/action_back"
         android:icon="@drawable/ic_exit"
         android:title="@string/back_label" />

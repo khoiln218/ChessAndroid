@@ -44,6 +44,13 @@
             android:text="@string/level_label" />
 
         <Button
+            android:id="@+id/theme_button"
+            android:layout_width="200dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:text="@string/theme_label" />
+
+        <Button
             android:id="@+id/about_button"
             android:layout_width="200dp"
             android:layout_height="60dp"

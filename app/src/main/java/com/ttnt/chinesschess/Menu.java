@@ -9,9 +9,11 @@ import android.widget.Button;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.ttnt.chinesschess.graph.BoardTheme;
+
 public class Menu extends AppCompatActivity implements OnClickListener {
 
-    int level = 1;
+    int level = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +27,8 @@ public class Menu extends AppCompatActivity implements OnClickListener {
         continueView.setOnClickListener(this);
         Button levelView = findViewById(R.id.level_button);
         levelView.setOnClickListener(this);
+        Button themeView = findViewById(R.id.theme_button);
+        themeView.setOnClickListener(this);
         Button aboutView = findViewById(R.id.about_button);
         aboutView.setOnClickListener(this);
         Button exiView = findViewById(R.id.exit_button);
@@ -42,6 +46,8 @@ public class Menu extends AppCompatActivity implements OnClickListener {
             startActivity(continueGame);
         } else if (id == R.id.level_button) {
             openLevelDialog();
+        } else if (id == R.id.theme_button) {
+            openThemeDialog();
         } else if (id == R.id.about_button) {
             Intent about = new Intent(Menu.this, About.class);
             startActivity(about);
@@ -60,8 +66,19 @@ public class Menu extends AppCompatActivity implements OnClickListener {
                 }).show();
     }
 
+    /** The board palette is a setting, not a per-game choice, so it is saved straight away. */
+    private void openThemeDialog() {
+        BoardTheme[] themes = BoardTheme.values();
+        new AlertDialog.Builder(this).setTitle(R.string.theme_title)
+                .setSingleChoiceItems(BoardTheme.labels(this), BoardTheme.load(this).ordinal(),
+                        (dialog, i) -> {
+                            themes[i].save(this);
+                            dialog.dismiss();
+                        }).show();
+    }
+
     private void openLevelDialog() {
         new AlertDialog.Builder(this).setTitle(R.string.level_title)
-                .setItems(R.array.level, (dialoginterface, i) -> level = i + 1).show();
+                .setItems(R.array.level, (dialoginterface, i) -> level = i + 2).show();
     }
 }

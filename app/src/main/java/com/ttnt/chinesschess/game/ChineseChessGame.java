@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import com.ttnt.chinesschess.chess.Board;
 import com.ttnt.chinesschess.chess.State;
 import com.ttnt.chinesschess.chess._AI;
+import com.ttnt.chinesschess.graph.BoardTheme;
 import com.ttnt.chinesschess.graph.Graphics;
 
 import java.util.concurrent.ExecutorService;
@@ -68,7 +69,7 @@ public class ChineseChessGame extends View {
     public ChineseChessGame(Context context, int level, boolean turn) {
         super(context);
         this.turn = turn;
-        graph = new Graphics(getResources());
+        graph = new Graphics(getResources(), BoardTheme.load(context));
         board = new Board(!turn);
         ai = new _AI(board, level);
         setFocusable(true);
@@ -77,6 +78,12 @@ public class ChineseChessGame extends View {
 
     public void setListener(Listener listener) {
         this.listener = listener;
+    }
+
+    /** Repaints the board in another palette, mid-game and without disturbing the position. */
+    public void setTheme(BoardTheme theme) {
+        graph.setTheme(theme);
+        invalidate();
     }
 
     /**

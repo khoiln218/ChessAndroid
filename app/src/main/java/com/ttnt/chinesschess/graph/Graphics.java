@@ -3,10 +3,14 @@ package com.ttnt.chinesschess.graph;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Point;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Shader;
@@ -18,14 +22,15 @@ import com.ttnt.chinesschess.chess.State;
 import java.util.ArrayList;
 
 /**
- * Draws the board and the pieces. The pieces are artwork from drawable-nodpi; the board itself is
- * drawn here - wood, frame, grid, palaces, river and position marks - and painted once into
+ * Draws the board and the pieces. Both are drawn rather than loaded - the pieces by
+ * {@link PieceArt}, the board here - wood, frame, grid, palaces, river and position marks - and painted once into
  * {@link #boardCache} whenever the size changes, so a repaint is a single blit.
  *
  * <p>Drawing it rather than scaling a picture of it is what lets the margin be chosen freely: the
  * frame is placed one disc radius outside the grid, so it runs flush with the edge of a piece
  * standing on an edge file rather than under it. The colours and line weights below are the ones the old
- * board artwork was drawn with, so the board still looks like itself.
+ * board artwork was drawn with - the {@link BoardTheme#MOC} palette - so the wooden board still
+ * looks like itself, and the other four materials are palettes of the same shape.
  */
 public class Graphics {
 
@@ -36,30 +41,45 @@ public class Graphics {
      * pieces on adjacent intersections still clear each other - up to 0.68, where the discs meet.
      */
     private final static float PIECE_RATIO = 0.64f;
-    /** Fraction of the piece artwork the disc fills, the rest being transparent padding. */
-    private final static float PIECE_ART = 0.734f;
-    /** Fraction of the marker artwork the selection ring - the widest of the four - fills. */
-    private final static float MARK_ART = 0.956f;
+    /** Fraction of the piece artwork the disc fills - its 500pt disc in a 680pt design. */
+    static final float PIECE_ART = 500f / 680f;
+    /** Fraction of its own artwork each marker fills, measured off the four images. */
+    private final static float SELECT_ART = 0.956f;
+    private final static float CAPTURE_ART = 0.656f;
+    private final static float DOT_ART = 0.367f;
+    private final static float LAST_ART = 0.889f;
+    /**
+     * How wide each marker is drawn, as a fraction of the piece disc. At 1 a marker lands exactly
+     * on the rim of a piece - and, on an edge file, exactly on the frame - so 1 is where a marker
+     * has to stop if it must never touch the frame. The selection ring is deliberately past that:
+     * it reads as a halo around the piece rather than an outline on it, and the price is that on
+     * the four edge lines it crosses the frame while that piece is held.
+     *
+     * <p>The last-move square may sit at 1 and still be seen under a piece, because its corners
+     * reach past a round disc; a round marker at 1 would be hidden by the piece instead, which is
+     * why the ring is the one thing drawn over the pieces rather than under them.
+     */
+    private final static float SELECT_SPAN = 1.13f;
+    private final static float CAPTURE_SPAN = 1.10f;
+    private final static float DOT_SPAN = 0.42f;
+    private final static float LAST_SPAN = 1.00f;
     /** Wood kept outside the frame line, in cells: how far the board runs past its own frame. */
     private final static float OUTER_RATIO = 0.18f;
     /** Margin between the outer edge of the board and the first line, in pixels. */
-    public static int BORDER;
+    static int BORDER;
     public final static int ROW = 10;
     public final static int COL = 9;
     public static int LEFT;
     public static int UP;
-    public static int RIGHT;
-    public static int DOWN;
     /** Half the width a piece is drawn at. */
-    public static int SIZE;
-    /** Half the width the markers - selection, move dot, capture, last move - are drawn at. */
-    public static int MARK_SIZE;
-
-    /** Wood, lit from the top left corner. */
-    private final static int WOOD_LIGHT = 0xFFE8C99A;
-    private final static int WOOD_DARK = 0xFFCBA071;
-    private final static int LINE_COLOR = 0xFF59371B;
-    private final static int RIVER_COLOR = 0xFF6B4526;
+    static int SIZE;
+    /** Half the width of each marker's box; the mark inside it is narrower by its own ART. */
+    static int SELECT_SIZE;
+    static int CAPTURE_SIZE;
+    static int DOT_SIZE;
+    static int LAST_SIZE;
+    /** The widest of the four, which is all a repaint has to allow room for. */
+    static int MARK_SIZE;
 
     /** Line weights and the position-mark bracket, all in cells. */
     private final static float GRID_STROKE = 4f / 144f;
@@ -76,40 +96,32 @@ public class Graphics {
     private final static int[] CANNON_ROW = {2, 7};
     private final static int[] PAWN_ROW = {3, 6};
 
+    /** Kept so the pieces can be redrawn when the size or the theme changes. */
+    private final Resources res;
     /** Indexed by {@code cell value - 8}: black tuong..tot, then red tuong..tot. */
-    private final Bitmap[] pieces;
+    private Bitmap[] pieces;
     private final Bitmap imageSelected;
     private final Bitmap imageMoveDot;
     private final Bitmap imageCapture;
     private final Bitmap imageLastMove;
     /** The four river characters, one per glyph, in the order they are written. */
     private final String[] riverWords;
+    /** Plain bitmap paint, used for the markers - those are the same whatever the theme is. */
     private final Paint paint;
 
+    /** The palette the board is painted with; the pieces are the same whichever it is. */
+    private BoardTheme theme;
     /** The whole board, painted once per size change: repainting it is one blit. */
     private Bitmap boardCache;
     private final Rect panelBounds = new Rect();
     private final Rect cellRect = new Rect();
     private final Rect clipBounds = new Rect();
 
-    public Graphics(Resources res) {
+    public Graphics(Resources res, BoardTheme theme) {
+        this.res = res;
+        this.theme = theme;
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         paint.setFilterBitmap(true);
-        pieces = new Bitmap[]{
-                BitmapFactory.decodeResource(res, R.drawable.black_tuong),
-                BitmapFactory.decodeResource(res, R.drawable.black_si),
-                BitmapFactory.decodeResource(res, R.drawable.black_tuong_voi),
-                BitmapFactory.decodeResource(res, R.drawable.black_ma),
-                BitmapFactory.decodeResource(res, R.drawable.black_xe),
-                BitmapFactory.decodeResource(res, R.drawable.black_phao),
-                BitmapFactory.decodeResource(res, R.drawable.black_tot),
-                BitmapFactory.decodeResource(res, R.drawable.red_tuong),
-                BitmapFactory.decodeResource(res, R.drawable.red_si),
-                BitmapFactory.decodeResource(res, R.drawable.red_tuong_voi),
-                BitmapFactory.decodeResource(res, R.drawable.red_ma),
-                BitmapFactory.decodeResource(res, R.drawable.red_xe),
-                BitmapFactory.decodeResource(res, R.drawable.red_phao),
-                BitmapFactory.decodeResource(res, R.drawable.red_tot)};
         imageSelected = BitmapFactory.decodeResource(res, R.drawable.hl_selected);
         imageMoveDot = BitmapFactory.decodeResource(res, R.drawable.hl_move_dot);
         imageCapture = BitmapFactory.decodeResource(res, R.drawable.hl_capture);
@@ -119,6 +131,28 @@ public class Graphics {
         for (int i = 0; i < riverWords.length; i++) {
             riverWords[i] = String.valueOf(words.charAt(i));
         }
+    }
+
+    /**
+     * Repaints the board and recolours the pieces for another theme. Nothing but the colours
+     * changes - not the artwork, not a single measurement - so there is no re-measure.
+     */
+    public void setTheme(BoardTheme theme) {
+        if (this.theme == theme) return;
+        this.theme = theme;
+        renderPieces();
+        if (boardCache != null) {
+            renderBoard(new Canvas(boardCache), boardCache.getWidth(), boardCache.getHeight());
+        }
+    }
+
+    /** Redraws the fourteen pieces at the current size, in the current theme's colours. */
+    private void renderPieces() {
+        if (CELL_SIZE <= 0) return;
+        if (pieces != null) {
+            for (Bitmap piece : pieces) piece.recycle();
+        }
+        pieces = PieceArt.renderAll(res, theme, SIZE * 2);
     }
 
     /** Radius of the disc a piece actually shows, in cells: its box less the padding around it. */
@@ -154,9 +188,13 @@ public class Graphics {
         CELL_SIZE = (int) Math.min(width / boxCellsWide(), height / boxCellsHigh());
         BORDER = Math.round(CELL_SIZE * borderCells());
         SIZE = Math.round(CELL_SIZE * PIECE_RATIO);
-        // Sized off the disc rather than off the piece box: it is the ring inside the marker
-        // artwork that has to land on the rim of the piece, and stay inside the frame with it.
-        MARK_SIZE = Math.round(CELL_SIZE * discCells() / MARK_ART);
+        // Sized off the disc rather than off the piece box: it is the mark inside each artwork
+        // that has to land on the rim of the piece, and stay inside the frame with it.
+        SELECT_SIZE = markSize(SELECT_SPAN, SELECT_ART);
+        CAPTURE_SIZE = markSize(CAPTURE_SPAN, CAPTURE_ART);
+        DOT_SIZE = markSize(DOT_SPAN, DOT_ART);
+        LAST_SIZE = markSize(LAST_SPAN, LAST_ART);
+        MARK_SIZE = Math.max(Math.max(SELECT_SIZE, CAPTURE_SIZE), Math.max(DOT_SIZE, LAST_SIZE));
 
         int boardWidth = (COL - 1) * CELL_SIZE + 2 * BORDER;
         int boardHeight = (ROW - 1) * CELL_SIZE + 2 * BORDER;
@@ -165,34 +203,68 @@ public class Graphics {
 
         LEFT = left + BORDER;
         UP = top + BORDER;
-        RIGHT = LEFT + (COL - 1) * CELL_SIZE;
-        DOWN = UP + (ROW - 1) * CELL_SIZE;
         panelBounds.set(left, top, left + boardWidth, top + boardHeight);
+
+        renderPieces();
 
         if (boardCache != null) boardCache.recycle();
         boardCache = Bitmap.createBitmap(boardWidth, boardHeight, Bitmap.Config.ARGB_8888);
         renderBoard(new Canvas(boardCache), boardWidth, boardHeight);
     }
 
+    /** Half-width of a marker's box: its artwork scaled so the mark inside spans {@code span}. */
+    private static int markSize(float span, float art) {
+        return Math.round(CELL_SIZE * discCells() * span / art);
+    }
+
     /** Paints the board into {@code canvas}, whose origin is the top left of the board itself. */
     private void renderBoard(Canvas canvas, int width, int height) {
+        // A theme change paints over a board that is already there, so clear it first: the round
+        // corners would otherwise keep a rim of the palette being replaced.
+        canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
         Paint wood = new Paint(Paint.ANTI_ALIAS_FLAG);
         wood.setShader(new LinearGradient(0, 0, width, height,
-                WOOD_LIGHT, WOOD_DARK, Shader.TileMode.CLAMP));
+                theme.woodLight, theme.woodDark, Shader.TileMode.CLAMP));
         float panelCorner = BORDER * 0.6f;
         canvas.drawRoundRect(new RectF(0, 0, width, height), panelCorner, panelCorner, wood);
 
+        // The border stands proud of the field: lit along the top left edge of the board, in
+        // shadow along the bottom right, which is what makes it read as a raised rim.
+        float bevel = BORDER * 0.30f;
+        Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
+        edge.setStyle(Paint.Style.STROKE);
+        edge.setStrokeWidth(bevel);
+        edge.setShader(new LinearGradient(0, 0, width, height,
+                0x70FFFFFF, 0x66000000, Shader.TileMode.CLAMP));
+        float bevelCorner = Math.max(panelCorner - bevel / 2f, 0f);
+        canvas.drawRoundRect(new RectF(bevel / 2f, bevel / 2f, width - bevel / 2f,
+                height - bevel / 2f), bevelCorner, bevelCorner, edge);
+
         Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
-        line.setColor(LINE_COLOR);
+        line.setColor(theme.line);
         line.setStyle(Paint.Style.STROKE);
 
         // The frame, its stroke sitting just outside the wood that separates it from the grid.
         float frameStroke = FRAME_STROKE * CELL_SIZE;
         float inset = discCells() * CELL_SIZE + frameStroke / 2f;
         float corner = FRAME_CORNER * CELL_SIZE;
+        RectF frame = new RectF(x(0) - inset, y(0) - inset, x(COL - 1) + inset,
+                y(ROW - 1) + inset);
         line.setStrokeWidth(frameStroke);
-        canvas.drawRoundRect(new RectF(x(0) - inset, y(0) - inset, x(COL - 1) + inset,
-                y(ROW - 1) + inset), corner, corner, line);
+        canvas.drawRoundRect(frame, corner, corner, line);
+
+        // The field is sunk below that rim, so the border casts onto it all the way round.
+        canvas.save();
+        Path field = new Path();
+        field.addRoundRect(frame, corner, corner, Path.Direction.CW);
+        canvas.clipPath(field);
+        Paint recess = new Paint(Paint.ANTI_ALIAS_FLAG);
+        recess.setStyle(Paint.Style.STROKE);
+        recess.setStrokeWidth(CELL_SIZE * 0.30f);
+        recess.setColor(0x38000000);
+        recess.setMaskFilter(new BlurMaskFilter(CELL_SIZE * 0.16f, BlurMaskFilter.Blur.NORMAL));
+        canvas.drawRoundRect(frame, corner, corner, recess);
+        canvas.restore();
 
         line.setStrokeWidth(GRID_STROKE * CELL_SIZE);
         for (int r = 0; r < ROW; r++) {
@@ -244,7 +316,7 @@ public class Graphics {
     private void drawRiver(Canvas canvas) {
         if (riverWords.length < 4) return;
         Paint text = new Paint(Paint.ANTI_ALIAS_FLAG);
-        text.setColor(RIVER_COLOR);
+        text.setColor(theme.river);
         text.setTypeface(Typeface.create(Typeface.SERIF, Typeface.BOLD));
         text.setTextSize(RIVER_TEXT * CELL_SIZE);
         text.setTextAlign(Paint.Align.CENTER);
@@ -286,8 +358,8 @@ public class Graphics {
     /** Faint squares on the two ends of the previous move; drawn under the pieces. */
     public void drawLastMove(Canvas canvas, Point prev, Point curr) {
         takeClip(canvas);
-        drawIfVisible(canvas, imageLastMove, cellRect(prev));
-        drawIfVisible(canvas, imageLastMove, cellRect(curr));
+        drawIfVisible(canvas, imageLastMove, markRect(prev, LAST_SIZE));
+        drawIfVisible(canvas, imageLastMove, markRect(curr, LAST_SIZE));
     }
 
     /** {@code skip} is the square a piece is currently sliding out of, or null. */
@@ -329,7 +401,7 @@ public class Graphics {
 
     public void drawSelect(Canvas canvas, Point pos) {
         takeClip(canvas);
-        drawIfVisible(canvas, imageSelected, cellRect(pos));
+        drawIfVisible(canvas, imageSelected, markRect(pos, SELECT_SIZE));
     }
 
     /** A green dot on empty targets, a red capture frame where an enemy piece can be taken. */
@@ -337,16 +409,17 @@ public class Graphics {
         takeClip(canvas);
         for (State state : posibleMove) {
             Point target = state.curr;
-            Bitmap marker = cell[target.x][target.y] == 0 ? imageMoveDot : imageCapture;
-            drawIfVisible(canvas, marker, cellRect(target));
+            boolean empty = cell[target.x][target.y] == 0;
+            drawIfVisible(canvas, empty ? imageMoveDot : imageCapture,
+                    markRect(target, empty ? DOT_SIZE : CAPTURE_SIZE));
         }
     }
 
-    /** The marker box, centred on the intersection: a piece with a little room around it. */
-    private Rect cellRect(Point p) {
+    /** A marker's box, centred on the intersection. Each marker brings its own half-width. */
+    private Rect markRect(Point p, int half) {
         int x = p.y * CELL_SIZE + LEFT;
         int y = p.x * CELL_SIZE + UP;
-        cellRect.set(x - MARK_SIZE, y - MARK_SIZE, x + MARK_SIZE, y + MARK_SIZE);
+        cellRect.set(x - half, y - half, x + half, y + half);
         return cellRect;
     }
 

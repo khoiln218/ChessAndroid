@@ -3,6 +3,7 @@ package com.ttnt.chinesschess;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -30,6 +31,8 @@ import com.google.android.gms.ads.MobileAds;
 import com.ttnt.chinesschess.chess.Board;
 import com.ttnt.chinesschess.chess.State;
 import com.ttnt.chinesschess.game.ChineseChessGame;
+import com.ttnt.chinesschess.graph.BoardTheme;
+import com.ttnt.chinesschess.graph.PieceArt;
 import com.ttnt.chinesschess.game.TurnTimerView;
 
 import java.io.FileInputStream;
@@ -48,7 +51,6 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
 
     private final Handler clock = new Handler(Looper.getMainLooper());
     private AdView adView;
-    private View adPlaceholder;
     private View computerSide;
     private View playerSide;
     private TurnTimerView computerTimer;
@@ -116,6 +118,8 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         findViewById(R.id.menu_button).setOnClickListener(this::showGameMenu);
 
+        tintAvatars(BoardTheme.load(this));
+
         game.setListener(this);
         game.start();
     }
@@ -128,7 +132,6 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
      */
     private void setUpAds() {
         MobileAds.initialize(this);
-        adPlaceholder = findViewById(R.id.ad_placeholder);
 
         FrameLayout slot = findViewById(R.id.ad_slot);
         DisplayMetrics metrics = getResources().getDisplayMetrics();
@@ -146,12 +149,6 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         slot.addView(adView, new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT,
                 Gravity.CENTER));
-        adView.setAdListener(new AdListener() {
-            @Override
-            public void onAdLoaded() {
-                adPlaceholder.setVisibility(View.INVISIBLE);
-            }
-        });
         adView.loadAd(new AdRequest.Builder().build());
     }
 
@@ -168,6 +165,10 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
                 undoGame();
                 return true;
             }
+            if (id == R.id.action_theme) {
+                openThemeDialog();
+                return true;
+            }
             if (id == R.id.action_back) {
                 finish();
                 return true;
@@ -175,6 +176,40 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
             return false;
         });
         popup.show();
+    }
+
+    /** Repaints the board straight away, so the five materials can be compared on the position. */
+    private void openThemeDialog() {
+        BoardTheme[] themes = BoardTheme.values();
+        new AlertDialog.Builder(this).setTitle(R.string.theme_title)
+                .setSingleChoiceItems(BoardTheme.labels(this), BoardTheme.load(this).ordinal(),
+                        (dialog, i) -> {
+                            themes[i].save(this);
+                            game.setTheme(themes[i]);
+                            tintAvatars(themes[i]);
+                            dialog.dismiss();
+                        }).show();
+    }
+
+    /**
+     * The two generals fronting the side panels are the same pieces that stand on the board, so
+     * they are drawn the same way - otherwise a themed set would sit under untouched heads.
+     */
+    private void tintAvatars(BoardTheme theme) {
+        dressAvatar(findViewById(R.id.computer_avatar), theme, true);
+        dressAvatar(findViewById(R.id.player_avatar), theme, false);
+    }
+
+    /** Puts one side's general on a view, inside a ring struck in that side's own colour. */
+    private void dressAvatar(ImageView view, BoardTheme theme, boolean red) {
+        view.setImageBitmap(PieceArt.general(getResources(), theme, red,
+                getResources().getDimensionPixelSize(R.dimen.avatar_piece)));
+        GradientDrawable ring = new GradientDrawable();
+        ring.setShape(GradientDrawable.OVAL);
+        ring.setColor(ContextCompat.getColor(this, R.color.avatarFill));
+        ring.setStroke(Math.round(getResources().getDisplayMetrics().density * 2),
+                red ? theme.rimOf(true) : theme.rimOf(false));
+        view.setBackground(ring);
     }
 
     // --- turn clock ---------------------------------------------------------
@@ -215,10 +250,8 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         TextView title = content.findViewById(R.id.result_title);
         TextView message = content.findViewById(R.id.result_message);
 
-        // The winner's general fronts the card.
-        avatar.setImageResource(playerWon ? R.drawable.black_tuong : R.drawable.red_tuong);
-        avatar.setBackgroundResource(
-                playerWon ? R.drawable.bg_avatar_black : R.drawable.bg_avatar_red);
+        // The winner's general fronts the card, in the material the set is currently made of.
+        dressAvatar(avatar, BoardTheme.load(this), !playerWon);
         title.setText(playerWon ? R.string.result_win_title : R.string.result_lose_title);
         title.setTextColor(ContextCompat.getColor(this,
                 playerWon ? R.color.resultWin : R.color.resultLose));
