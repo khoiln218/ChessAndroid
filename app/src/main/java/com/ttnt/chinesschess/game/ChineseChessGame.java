@@ -4,8 +4,10 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Point;
+import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -39,6 +41,13 @@ public class ChineseChessGame extends View {
      */
     private Point lastFrom;
     private Point lastTo;
+
+    /** How long a piece takes to slide from one intersection to the next one. */
+    private static final long MOVE_ANIM_MS = 220L;
+    private long animStart;
+    private byte animPiece;
+    /** Region the running slide can touch - the only part that gets repainted per frame. */
+    private final Rect animDirty = new Rect();
 
     /** Lets the activity drive the two side panels: whose clock runs, and when it stops. */
     public interface Listener {
@@ -82,13 +91,26 @@ public class ChineseChessGame extends View {
     public void showLastMove(Point from, Point to) {
         lastFrom = new Point(from);
         lastTo = new Point(to);
+        animStart = 0;
         invalidate();
     }
 
     public void clearLastMove() {
         lastFrom = null;
         lastTo = null;
+        animStart = 0;
         invalidate();
+    }
+
+    /** 0..1 along the current slide, or 1 when nothing is moving. */
+    private float animProgress() {
+        if (animStart == 0) return 1f;
+        float t = (SystemClock.uptimeMillis() - animStart) / (float) MOVE_ANIM_MS;
+        if (t >= 1f) {
+            animStart = 0;
+            return 1f;
+        }
+        return t * t * (3f - 2f * t);
     }
 
     private void beginTurn() {
@@ -140,7 +162,15 @@ public class ChineseChessGame extends View {
         if (lastFrom != null) {
             graph.drawLastMove(canvas, lastFrom, lastTo);
         }
-        graph.drawQuanCo(canvas, board.cell);
+        float t = animProgress();
+        boolean sliding = t < 1f;
+        graph.drawQuanCo(canvas, board.cell, sliding ? lastTo : null);
+        if (sliding) {
+            graph.drawMovingPiece(canvas, animPiece, lastFrom, lastTo, t);
+            graph.moveBounds(lastFrom, lastTo, animDirty);
+            postInvalidateOnAnimation(animDirty.left, animDirty.top,
+                    animDirty.right, animDirty.bottom);
+        }
         if (board.isCheckSelect(board.prevMove.x, board.prevMove.y) && board.select) {
             graph.drawSelect(canvas, board.prevMove);
             graph.drawAllPossibleMove(canvas, board.allMove(board.prevMove), board.cell);
@@ -192,7 +222,11 @@ public class ChineseChessGame extends View {
     public void move(int x, int y) {
         lastFrom = new Point(board.prevMove);
         lastTo = new Point(x, y);
+        animPiece = board.getValue(lastFrom.x, lastFrom.y);
+        animStart = SystemClock.uptimeMillis();
         board.moveTo(x, y);
+        // Full repaint once, to wipe the selection ring and the move dots - those sit outside the
+        // move's own region. Every frame after this one repaints just the sliding piece's area.
         invalidate();
         switchPlayer();
     }

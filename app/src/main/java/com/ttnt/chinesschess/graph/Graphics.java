@@ -4,6 +4,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
@@ -47,6 +48,9 @@ public class Graphics {
     private final RectF panelRect = new RectF();
     private final Path panelPath = new Path();
     private final Rect cellRect = new Rect();
+    /** Maps the artwork onto the panel; with a dirty rect set only that slice gets rasterised. */
+    private final Matrix boardMatrix = new Matrix();
+    private final Rect clipBounds = new Rect();
 
     public Graphics(Resources res) {
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -98,41 +102,88 @@ public class Graphics {
         float radius = CELL_SIZE / 2.5f;
         panelPath.reset();
         panelPath.addRoundRect(panelRect, radius, radius, Path.Direction.CW);
+        boardMatrix.setRectToRect(
+                new RectF(0, 0, imageBoard.getWidth(), imageBoard.getHeight()),
+                panelRect, Matrix.ScaleToFit.FILL);
+    }
+
+    /** The area a slide from {@code from} to {@code to} can touch, markers and swell included. */
+    public void moveBounds(Point from, Point to, Rect out) {
+        int pad = Math.round(SIZE * 1.2f) + 2;
+        int x1 = from.y * CELL_SIZE + LEFT;
+        int y1 = from.x * CELL_SIZE + UP;
+        int x2 = to.y * CELL_SIZE + LEFT;
+        int y2 = to.x * CELL_SIZE + UP;
+        out.set(Math.min(x1, x2) - pad, Math.min(y1, y2) - pad,
+                Math.max(x1, x2) + pad, Math.max(y1, y2) + pad);
     }
 
     public void drawBanCo(Canvas canvas) {
+        if (!takeClip(canvas) || !Rect.intersects(clipBounds, panelBounds)) return;
         canvas.save();
         canvas.clipPath(panelPath);
-        canvas.drawBitmap(imageBoard, null, panelBounds, paint);
+        // Same matrix whatever the dirty rect is, so a partial repaint lands pixel-exact on top
+        // of what is already on screen - no seam along the edge of the repainted area.
+        canvas.drawBitmap(imageBoard, boardMatrix, paint);
         canvas.restore();
     }
 
     /** Faint squares on the two ends of the previous move; drawn under the pieces. */
     public void drawLastMove(Canvas canvas, Point prev, Point curr) {
-        canvas.drawBitmap(imageLastMove, null, cellRect(prev), paint);
-        canvas.drawBitmap(imageLastMove, null, cellRect(curr), paint);
+        takeClip(canvas);
+        drawIfVisible(canvas, imageLastMove, cellRect(prev));
+        drawIfVisible(canvas, imageLastMove, cellRect(curr));
     }
 
-    public void drawQuanCo(Canvas canvas, byte[][] cell) {
+    /** {@code skip} is the square a piece is currently sliding out of, or null. */
+    public void drawQuanCo(Canvas canvas, byte[][] cell, Point skip) {
+        takeClip(canvas);
         for (int i = 0; i < ROW; i++)
             for (int j = 0; j < COL; j++) {
                 byte piece = cell[i][j];
-                if (piece != 0) {
-                    canvas.drawBitmap(pieces[piece - 8], null, pieceRect(i, j), paint);
-                }
+                if (piece == 0 || (skip != null && skip.x == i && skip.y == j)) continue;
+                drawIfVisible(canvas, pieces[piece - 8], pieceRect(i, j));
             }
     }
 
+    /** Reads the region being repainted; everything outside it is skipped. */
+    private boolean takeClip(Canvas canvas) {
+        if (canvas.getClipBounds(clipBounds)) return true;
+        clipBounds.setEmpty();
+        return false;
+    }
+
+    private void drawIfVisible(Canvas canvas, Bitmap bitmap, Rect where) {
+        if (Rect.intersects(clipBounds, where)) {
+            canvas.drawBitmap(bitmap, null, where, paint);
+        }
+    }
+
+    /**
+     * Draws a piece part-way along its move, {@code t} running 0..1. It swells slightly at the
+     * halfway point so the move reads as lifting the piece and putting it back down.
+     */
+    public void drawMovingPiece(Canvas canvas, byte piece, Point from, Point to, float t) {
+        float x = (from.y + (to.y - from.y) * t) * CELL_SIZE + LEFT;
+        float y = (from.x + (to.x - from.x) * t) * CELL_SIZE + UP;
+        float half = SIZE * (1f + 0.12f * (float) Math.sin(Math.PI * t));
+        cellRect.set(Math.round(x - half), Math.round(y - half),
+                Math.round(x + half), Math.round(y + half));
+        canvas.drawBitmap(pieces[piece - 8], null, cellRect, paint);
+    }
+
     public void drawSelect(Canvas canvas, Point pos) {
-        canvas.drawBitmap(imageSelected, null, cellRect(pos), paint);
+        takeClip(canvas);
+        drawIfVisible(canvas, imageSelected, cellRect(pos));
     }
 
     /** A green dot on empty targets, a red capture frame where an enemy piece can be taken. */
     public void drawAllPossibleMove(Canvas canvas, ArrayList<State> posibleMove, byte[][] cell) {
+        takeClip(canvas);
         for (State state : posibleMove) {
             Point target = state.curr;
             Bitmap marker = cell[target.x][target.y] == 0 ? imageMoveDot : imageCapture;
-            canvas.drawBitmap(marker, null, cellRect(target), paint);
+            drawIfVisible(canvas, marker, cellRect(target));
         }
     }
 
