@@ -54,6 +54,11 @@ public class ChineseChessGame extends View {
     /** Region the running slide can touch - the only part that gets repainted per frame. */
     private final Rect animDirty = new Rect();
 
+    /** Why a game ended, which is what the result card has to explain. */
+    public enum End {
+        CHECKMATE, TIMEOUT, PERPETUAL_CHECK, PERPETUAL_CHASE, REPETITION_DRAW
+    }
+
     /** Lets the activity drive the two side panels: whose clock runs, and when it stops. */
     public interface Listener {
         /** A new turn begins; {@code computerToMove} tells which side panel owns the clock. */
@@ -62,8 +67,8 @@ public class ChineseChessGame extends View {
         /** The AI started or finished searching, so its panel can show the sweeping ring. */
         void onThinkingChanged(boolean thinking);
 
-        /** The game ended; no clock runs anymore. {@code byTimeout} tells why. */
-        void onGameOver(boolean playerWon, boolean byTimeout);
+        /** The game ended; no clock runs anymore. {@code how} tells why, and for a draw nobody won. */
+        void onGameOver(boolean playerWon, End how);
     }
 
     public ChineseChessGame(Context context, int level, boolean turn) {
@@ -147,7 +152,7 @@ public class ChineseChessGame extends View {
         isGameOver = true;
         if (listener != null) {
             listener.onThinkingChanged(false);
-            listener.onGameOver(board.RED, true);
+            listener.onGameOver(board.RED, End.TIMEOUT);
         }
     }
 
@@ -250,19 +255,42 @@ public class ChineseChessGame extends View {
     public void switchPlayer() {
         final int started = generation;
         executor.execute(() -> {
-            final boolean result = board.isGameOver(board.RED) || board.isGameOver(!board.RED);
+            final boolean mated = board.isGameOver(board.RED) || board.isGameOver(!board.RED);
+            // Judged on the board the move just landed on, before either side is put on the clock.
+            final Board.Repeat repeat = mated ? Board.Repeat.NONE : board.judgeRepetition();
             mainHandler.post(() -> {
                 if (started != generation) return;
-                isGameOver = result;
-                if (isGameOver) {
-                    if (listener != null) {
-                        listener.onGameOver(board.RED, false);
-                    }
-                } else {
+                isGameOver = mated || repeat != Board.Repeat.NONE;
+                if (!isGameOver) {
                     beginTurn();
+                    return;
+                }
+                if (listener == null) return;
+                if (mated) {
+                    listener.onGameOver(board.RED, End.CHECKMATE);
+                    return;
+                }
+                // The player is the black side, so red losing is the player winning.
+                switch (repeat) {
+                    case RED_LOSES -> listener.onGameOver(true, endFor(true));
+                    case BLACK_LOSES -> listener.onGameOver(false, endFor(false));
+                    default -> listener.onGameOver(false, End.REPETITION_DRAW);
                 }
             });
         });
+    }
+
+    /** Which of the two offences the guilty side committed, for the result card to name. */
+    private End endFor(boolean redGuilty) {
+        int checks = 0;
+        int moves = 0;
+        for (int i = board.history.size() - 1; i >= 0 && moves < 6; i--) {
+            Board.Ply ply = board.history.get(i);
+            if (ply.redMoved != redGuilty) continue;
+            moves++;
+            if (ply.gaveCheck) checks++;
+        }
+        return checks == moves ? End.PERPETUAL_CHECK : End.PERPETUAL_CHASE;
     }
 
     private void computer() {

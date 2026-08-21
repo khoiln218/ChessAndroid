@@ -36,8 +36,7 @@ public class CKnight extends Piece {
                 byte val2 = board.cell[x][y];
                 if ((val2 == 0 || ((RED && val2 >= 8 && val2 <= 14) || (!RED && val2 > 14))) && checkProject(new Point(x, y))) {
                     doMove(x, y);
-                    ArrayList<Point> arr = board.findPieces(RED);
-                    if (checkProject(board, arr)) {
+                    if (board.kingSafe(RED)) {
                         allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
                     }
                     reMove(x, y, val2);
@@ -47,10 +46,18 @@ public class CKnight extends Piece {
         return allPossibleMove;
     }
 
-    @Override
-    boolean checkProject(Point King) {
-        int dong = King.x - CurrMove.x;
-        int cot = King.y - CurrMove.y;
+
+    public static int getPositionValue(Point pos, boolean RED) {
+        if (RED) {
+            return KnightTable[9 - pos.x][8 - pos.y];
+        }
+        return KnightTable[pos.x][pos.y];
+    }
+
+    /** Whether a horse standing here could reach {@code target}: its leg must be clear. */
+    private boolean checkProject(Point target) {
+        int dong = target.x - CurrMove.x;
+        int cot = target.y - CurrMove.y;
         int d = Math.abs(dong);
         int c = Math.abs(cot);
         if ((d == 1 && c == 2) || (d == 2 && c == 1)) {
@@ -69,12 +76,5 @@ public class CKnight extends Piece {
             }
         }
         return false;
-    }
-
-    public static int getPositionValue(Point pos, boolean RED) {
-        if (RED) {
-            return KnightTable[9 - pos.x][8 - pos.y];
-        }
-        return KnightTable[pos.x][pos.y];
     }
 }

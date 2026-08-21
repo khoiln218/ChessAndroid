@@ -230,7 +230,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
     }
 
     @Override
-    public void onGameOver(boolean playerWon, boolean byTimeout) {
+    public void onGameOver(boolean playerWon, ChineseChessGame.End how) {
         stopClock();
         thinking = false;
         computerTimer.setThinking(false);
@@ -238,11 +238,11 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         playerStatus.setText(R.string.status_finished);
         showClock(remainingMillis);
         highlight(false, false);
-        showResultDialog(playerWon, byTimeout);
+        showResultDialog(playerWon, how);
     }
 
     /** The end-of-game card: who won, why, and the two ways out of the finished board. */
-    private void showResultDialog(boolean playerWon, boolean byTimeout) {
+    private void showResultDialog(boolean playerWon, ChineseChessGame.End how) {
         if (isFinishing() || (resultDialog != null && resultDialog.isShowing())) return;
 
         View content = getLayoutInflater().inflate(R.layout.dialog_result, null);
@@ -250,18 +250,23 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         TextView title = content.findViewById(R.id.result_title);
         TextView message = content.findViewById(R.id.result_message);
 
+        boolean draw = how == ChineseChessGame.End.REPETITION_DRAW;
         // The winner's general fronts the card, in the material the set is currently made of.
-        dressAvatar(avatar, BoardTheme.load(this), !playerWon);
-        title.setText(playerWon ? R.string.result_win_title : R.string.result_lose_title);
-        title.setTextColor(ContextCompat.getColor(this,
-                playerWon ? R.color.resultWin : R.color.resultLose));
-        if (byTimeout) {
-            message.setText(playerWon ? R.string.result_win_timeout
-                    : R.string.result_lose_timeout);
-        } else {
-            message.setText(playerWon ? R.string.result_win_checkmate
-                    : R.string.result_lose_checkmate);
-        }
+        // A draw has no winner, so the player's own general stands there instead.
+        dressAvatar(avatar, BoardTheme.load(this), !draw && !playerWon);
+        title.setText(draw ? R.string.result_draw_title
+                : playerWon ? R.string.result_win_title : R.string.result_lose_title);
+        title.setTextColor(ContextCompat.getColor(this, draw ? R.color.textMuted
+                : playerWon ? R.color.resultWin : R.color.resultLose));
+        message.setText(switch (how) {
+            case TIMEOUT -> playerWon ? R.string.result_win_timeout : R.string.result_lose_timeout;
+            case PERPETUAL_CHECK -> playerWon ? R.string.result_win_perpetual_check
+                    : R.string.result_lose_perpetual_check;
+            case PERPETUAL_CHASE -> playerWon ? R.string.result_win_perpetual_chase
+                    : R.string.result_lose_perpetual_chase;
+            case REPETITION_DRAW -> R.string.result_draw_repetition;
+            default -> playerWon ? R.string.result_win_checkmate : R.string.result_lose_checkmate;
+        });
 
         resultDialog = new AlertDialog.Builder(this).setView(content).create();
         if (resultDialog.getWindow() != null) {
@@ -407,6 +412,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
                     game.board.select = reader.read() == 1;
                     game.board.move = reader.read() == 1;
                     game.board.RED = reader.read() == 1;
+                    game.board.resyncHistory();
                 } else
                     game.isGameOver = false;
                 reader.close();
@@ -433,6 +439,10 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
             game.board.currMove = pos.curr;
             game.board.cell[pos.prev.x][pos.prev.y] = pos.value1;
             game.board.cell[pos.curr.x][pos.curr.y] = pos.value2;
+            // Both halves of the round come off the repetition record too, or the position
+            // would be judged against a history that no longer matches the board.
+            game.board.undo();
+            game.board.undo();
             //the move that is now the latest one - or none left at all
             if (game.board.listUndo.isEmpty()) {
                 game.clearLastMove();

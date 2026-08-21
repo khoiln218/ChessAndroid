@@ -36,8 +36,7 @@ public class CPawn extends Piece {
                 byte val2 = board.cell[x][y];
                 if ((val2 == 0 || ((RED && val2 >= 8 && val2 <= 14) || (!RED && val2 > 14))) && (((!isOver(x) && i < 2) || isOver(x)) && ((RED && i != 1) || (!RED && i != 0)))) {
                     doMove(x, y);
-                    ArrayList<Point> arr = board.findPieces(RED);
-                    if (checkProject(board, arr)) {
+                    if (board.kingSafe(RED)) {
                         allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
                     }
                     reMove(x, y, val2);
@@ -51,15 +50,6 @@ public class CPawn extends Piece {
         return (RED && x > 4) || (!RED && x < 5);
     }
 
-    @Override
-    boolean checkProject(Point King) {
-        if ((RED && King.x < CurrMove.x) || (!RED && (King.x > CurrMove.x))) {
-            return false;
-        }
-        int dx = Math.abs(CurrMove.x - King.x);
-        int dy = Math.abs(CurrMove.y - King.y);
-        return (dx == 1 && dy == 0) || (dx == 0 && dy == 1);
-    }
 
     public static int getPositionValue(Point pos, boolean RED) {
         if (RED) {

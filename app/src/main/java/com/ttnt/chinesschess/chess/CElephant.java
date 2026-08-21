@@ -36,8 +36,7 @@ public class CElephant extends Piece {
                 byte val2 = board.cell[x][y];
                 if (((RED && ((val2 >= 8 && val2 <= 14) || val2 == 0) && x <= 4) || (!RED && (val2 > 14 || val2 == 0) && x >= 5)) && isCheck(new Point(x, y))) {
                     doMove(x, y);
-                    ArrayList<Point> arr = board.findPieces(RED);
-                    if (checkProject(board, arr)) {
+                    if (board.kingSafe(RED)) {
                         allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
                     }
                     reMove(x, y, val2);
@@ -68,10 +67,6 @@ public class CElephant extends Piece {
         return false;
     }
 
-    @Override
-    boolean checkProject(Point King) {
-        return false;
-    }
 
     public static int getPositionValue(Point pos, boolean RED) {
         if (RED) {

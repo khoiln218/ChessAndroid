@@ -46,6 +46,12 @@
     <string name="result_lose_checkmate">Máy đã chiếu bí bạn.</string>
     <string name="result_win_timeout">Máy hết giờ cho lượt của mình.</string>
     <string name="result_lose_timeout">Bạn đã dùng hết 3 phút cho lượt này.</string>
+    <string name="result_draw_title">Hòa cờ!</string>
+    <string name="result_draw_repetition">Thế cờ lặp lại ba lần, không bên nào phạm luật.</string>
+    <string name="result_win_perpetual_check">Máy chiếu tướng liên tục nên bị xử thua.</string>
+    <string name="result_lose_perpetual_check">Bạn chiếu tướng liên tục nên bị xử thua.</string>
+    <string name="result_win_perpetual_chase">Máy bắt quân liên tục nên bị xử thua.</string>
+    <string name="result_lose_perpetual_chase">Bạn bắt quân liên tục nên bị xử thua.</string>
     <string name="result_new_game">Ván mới</string>
     <string name="result_menu">Về menu</string>
     <string name="back_label">Back</string>

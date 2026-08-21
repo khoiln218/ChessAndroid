@@ -52,8 +52,6 @@ public abstract class Piece {
 
     abstract ArrayList<State> findAllPossibleMoves();
 
-    abstract boolean checkProject(Point King);
-
     public boolean checkMove(int x, int y) {
         try {
             allPossibleMove = findAllPossibleMoves();
@@ -70,53 +68,6 @@ public abstract class Piece {
         return false;
     }
 
-    protected boolean checkProject(Board board1, ArrayList<Point> arr) {
-        try {
-            Point pKing = arr.get(0);
-            for (int i = 1; i < arr.size(); i++) {
-                boolean isCheck;
-                Point pos = arr.get(i);
-                byte value = board1.cell[pos.x][pos.y];
-                isCheck = switch (value) {
-                    case 8, 15 -> {
-                        CKing king = new CKing(board1, pos);
-                        yield king.checkProject(pKing);
-                    }
-                    case 9, 16 -> {
-                        CBishop bishop = new CBishop(board1, pos);
-                        yield bishop.checkProject(pKing);
-                    }
-                    case 10, 17 -> {
-                        CElephant elephant = new CElephant(board1, pos);
-                        yield elephant.checkProject(pKing);
-                    }
-                    case 11, 18 -> {
-                        CKnight knight = new CKnight(board1, pos);
-                        yield knight.checkProject(pKing);
-                    }
-                    case 12, 19 -> {
-                        CRook rook = new CRook(board1, pos);
-                        yield rook.checkProject(pKing);
-                    }
-                    case 13, 20 -> {
-                        CCannon cannon = new CCannon(board1, pos);
-                        yield cannon.checkProject(pKing);
-                    }
-                    case 14, 21 -> {
-                        CPawn pawn = new CPawn(board1, pos);
-                        yield pawn.checkProject(pKing);
-                    }
-                    default -> false;
-                };
-                if (isCheck) {
-                    return false;
-                }
-            }
-        } catch (Exception e) {
-            System.out.println("ERROR checkProject, Piece: " + e);
-        }
-        return true;
-    }
 
     protected void doMove(int x, int y) {
         board.cell[x][y] = board.cell[CurrMove.x][CurrMove.y];

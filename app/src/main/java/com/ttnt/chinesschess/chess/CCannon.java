@@ -105,34 +105,12 @@ public class CCannon extends Piece {
 
     void getCannonMove3(int x, int y, byte val1, byte val2) {
         doMove(x, y);
-        ArrayList<Point> arr = board.findPieces(RED);
-        if (checkProject(board, arr)) {
+        if (board.kingSafe(RED)) {
             allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
         }
         reMove(x, y, val2);
     }
 
-    @Override
-    boolean checkProject(Point King) {
-        if (CurrMove.x == King.x || CurrMove.y == King.y) {
-            int count = 0;
-            if (CurrMove.x == King.x) {
-                for (int i = Math.min(CurrMove.y, King.y) + 1; i < Math.max(CurrMove.y, King.y); i++) {
-                    if (board.cell[CurrMove.x][i] != 0) {
-                        count++;
-                    }
-                }
-            } else {
-                for (int i = Math.min(CurrMove.x, King.x) + 1; i < Math.max(CurrMove.x, King.x); i++) {
-                    if (board.cell[i][CurrMove.y] != 0) {
-                        count++;
-                    }
-                }
-            }
-            return count == 1;
-        }
-        return false;
-    }
 
     public static int getPositionValue(Point pos, boolean RED) {
         if (RED) {
