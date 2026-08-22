@@ -4,7 +4,7 @@ import android.graphics.Point;
 
 public class CKnight extends Piece {
 
-    static int[][] KnightTable = {
+    static final int[][] KNIGHT_TABLE = {
             {40, 40, 40, 40, 40, 40, 40, 40, 40}, /* KNIGHT */
             {40, 41, 42, 42, 42, 42, 42, 41, 40},
             {40, 43, 44, 44, 44, 44, 44, 43, 40},
@@ -30,13 +30,13 @@ public class CKnight extends Piece {
         int[] dx = {1, 1, 2, 2, -1, -1, -2, -2};
         int[] dy = {2, -2, 1, -1, 2, -2, 1, -1};
         for (int i = 0; i < dx.length; i++) {
-            int x = CurrMove.x + dx[i];
-            int y = CurrMove.y + dy[i];
+            int x = currMove.x + dx[i];
+            int y = currMove.y + dy[i];
             if (x >= 0 && x <= 9 && y >= 0 && y <= 8) {
-                byte val1 = board.cell[CurrMove.x][CurrMove.y];
-                byte val2 = board.cell[x][y];
-                if ((val2 == 0 || ((RED && val2 >= 8 && val2 <= 14) || (!RED && val2 > 14))) && checkProject(x, y)) {
-                    offer(x, y, val1, val2);
+                byte piece = board.cell[currMove.x][currMove.y];
+                byte occupant = board.cell[x][y];
+                if ((occupant == 0 || ((red && occupant >= 8 && occupant <= 14) || (!red && occupant > 14))) && checkProject(x, y)) {
+                    offer(x, y, piece, occupant);
                 }
             }
         }
@@ -44,22 +44,22 @@ public class CKnight extends Piece {
 
     /** Whether a horse standing here could reach {@code target}: its leg must be clear. */
     private boolean checkProject(int x, int y) {
-        int dong = x - CurrMove.x;
-        int cot = y - CurrMove.y;
-        int d = Math.abs(dong);
-        int c = Math.abs(cot);
-        if ((d == 1 && c == 2) || (d == 2 && c == 1)) {
-            if (d == 1) {
-                if (cot > 0) {
-                    return board.cell[CurrMove.x][CurrMove.y + 1] == 0;
+        int dx = x - currMove.x;
+        int dy = y - currMove.y;
+        int absX = Math.abs(dx);
+        int absY = Math.abs(dy);
+        if ((absX == 1 && absY == 2) || (absX == 2 && absY == 1)) {
+            if (absX == 1) {
+                if (dy > 0) {
+                    return board.cell[currMove.x][currMove.y + 1] == 0;
                 } else {
-                    return board.cell[CurrMove.x][CurrMove.y - 1] == 0;
+                    return board.cell[currMove.x][currMove.y - 1] == 0;
                 }
             } else {
-                if (dong > 0) {
-                    return board.cell[CurrMove.x + 1][CurrMove.y] == 0;
+                if (dx > 0) {
+                    return board.cell[currMove.x + 1][currMove.y] == 0;
                 } else {
-                    return board.cell[CurrMove.x - 1][CurrMove.y] == 0;
+                    return board.cell[currMove.x - 1][currMove.y] == 0;
                 }
             }
         }

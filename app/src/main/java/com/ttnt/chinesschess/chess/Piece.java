@@ -16,9 +16,9 @@ import java.util.ArrayList;
  */
 public abstract class Piece {
 
-    final Point CurrMove;
+    final Point currMove;
     Board board;
-    public boolean RED;
+    public boolean red;
     ArrayList<State> allPossibleMove;
 
     /** Skip quiet moves. The quiescence search resolves captures and wants nothing else. */
@@ -32,22 +32,22 @@ public abstract class Piece {
 
     public Piece(Board board, Point currMove) {
         this.board = board;
-        this.CurrMove = new Point(currMove);
-        this.RED = board.cell[currMove.x][currMove.y] > 14;
+        this.currMove = new Point(currMove);
+        this.red = board.cell[currMove.x][currMove.y] > 14;
         allPossibleMove = null;
     }
 
     /** An instance with no square yet, to be pointed at one by {@link #at}. */
     Piece(Board board) {
         this.board = board;
-        this.CurrMove = new Point();
+        this.currMove = new Point();
     }
 
     /** Re-points this piece at another square, so one instance serves the whole board. */
     void at(int x, int y) {
-        CurrMove.x = x;
-        CurrMove.y = y;
-        RED = board.cell[x][y] > 14;
+        currMove.x = x;
+        currMove.y = y;
+        red = board.cell[x][y] > 14;
     }
 
     /** Appends this piece's moves to {@link #allPossibleMove}, under the flags as they stand. */
@@ -62,19 +62,19 @@ public abstract class Piece {
     }
 
     /**
-     * Keeps one move the piece's own rules have already allowed. {@code val2} is what stands on
-     * the target square, read before the move is tried, so the state built here does not depend
-     * on the board being left in any particular way.
+     * Keeps one move the piece's own rules have already allowed. {@code captured} is what stands
+     * on the target square, read before the move is tried, so the state built here does not
+     * depend on the board being left in any particular way.
      */
-    void offer(int x, int y, byte val1, byte val2) {
-        if (capturesOnly && val2 == 0) return;
+    void offer(int x, int y, byte piece, byte captured) {
+        if (capturesOnly && captured == 0) return;
         if (legalOnly) {
             doMove(x, y);
-            boolean safe = board.kingSafe(RED);
-            reMove(x, y, val2);
+            boolean safe = board.kingSafe(red);
+            reMove(x, y, captured);
             if (!safe) return;
         }
-        allPossibleMove.add(new State(CurrMove, x, y, val1, val2));
+        allPossibleMove.add(new State(currMove, x, y, piece, captured));
     }
 
     public boolean checkMove(int x, int y) {
@@ -82,7 +82,7 @@ public abstract class Piece {
             allPossibleMove = findAllPossibleMoves();
             int n = allPossibleMove.size();
             for (int i = 0; i < n; i++) {
-                Point pos = allPossibleMove.get(i).curr;
+                Point pos = allPossibleMove.get(i).to;
                 if (pos.x == x && pos.y == y) {
                     return true;
                 }
@@ -95,12 +95,12 @@ public abstract class Piece {
 
 
     protected void doMove(int x, int y) {
-        board.cell[x][y] = board.cell[CurrMove.x][CurrMove.y];
-        board.cell[CurrMove.x][CurrMove.y] = 0;
+        board.cell[x][y] = board.cell[currMove.x][currMove.y];
+        board.cell[currMove.x][currMove.y] = 0;
     }
 
     protected void reMove(int x, int y, byte value) {
-        board.cell[CurrMove.x][CurrMove.y] = board.cell[x][y];
+        board.cell[currMove.x][currMove.y] = board.cell[x][y];
         board.cell[x][y] = value;
     }
 }

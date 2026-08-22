@@ -16,7 +16,7 @@ import androidx.annotation.NonNull;
 
 import com.ttnt.chinesschess.chess.Board;
 import com.ttnt.chinesschess.chess.State;
-import com.ttnt.chinesschess.chess._AI;
+import com.ttnt.chinesschess.chess.AI;
 import com.ttnt.chinesschess.graph.BoardTheme;
 import com.ttnt.chinesschess.graph.Graphics;
 
@@ -25,7 +25,7 @@ import java.util.concurrent.Executors;
 
 @SuppressLint("ViewConstructor")
 public class ChineseChessGame extends View {
-    _AI ai;
+    AI ai;
     Graphics graph;
     public Board board;
     public boolean isGameOver;
@@ -76,7 +76,7 @@ public class ChineseChessGame extends View {
         this.turn = turn;
         graph = new Graphics(getResources(), BoardTheme.load(context));
         board = new Board(!turn);
-        ai = new _AI(board, level);
+        ai = new AI(board, level);
         setFocusable(true);
         setFocusableInTouchMode(true);
     }
@@ -139,9 +139,9 @@ public class ChineseChessGame extends View {
 
     private void beginTurn() {
         if (listener != null) {
-            listener.onTurnStarted(board.RED);
+            listener.onTurnStarted(board.redToMove);
         }
-        if (board.RED) {
+        if (board.redToMove) {
             computer();
         }
     }
@@ -152,7 +152,7 @@ public class ChineseChessGame extends View {
         isGameOver = true;
         if (listener != null) {
             listener.onThinkingChanged(false);
-            listener.onGameOver(board.RED, End.TIMEOUT);
+            listener.onGameOver(board.redToMove, End.TIMEOUT);
         }
     }
 
@@ -172,20 +172,20 @@ public class ChineseChessGame extends View {
     }
 
     @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
+    protected void onSizeChanged(int w, int h, int oldWidth, int oldHeight) {
+        super.onSizeChanged(w, h, oldWidth, oldHeight);
         graph.setSize(w, h);
     }
 
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
-        graph.drawBanCo(canvas);
+        graph.drawBoard(canvas);
         if (lastFrom != null) {
             graph.drawLastMove(canvas, lastFrom, lastTo);
         }
         float t = animProgress();
         boolean sliding = t < 1f;
-        graph.drawQuanCo(canvas, board.cell, sliding ? lastTo : null);
+        graph.drawPieces(canvas, board.cell, sliding ? lastTo : null);
         if (sliding) {
             graph.drawMovingPiece(canvas, animPiece, lastFrom, lastTo, t);
             graph.moveBounds(lastFrom, lastTo, animDirty);
@@ -209,7 +209,7 @@ public class ChineseChessGame extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-            if (!isGameOver && !board.RED) {
+            if (!isGameOver && !board.redToMove) {
                 // floor, not truncation: the board is centred, so taps above/left of it give a
                 // negative offset that must not round back into row/column 0.
                 int x = (int) Math.floor((event.getY() - Graphics.UP + Graphics.CELL_SIZE / 2f)
@@ -255,7 +255,7 @@ public class ChineseChessGame extends View {
     public void switchPlayer() {
         final int started = generation;
         executor.execute(() -> {
-            final boolean mated = board.isGameOver(board.RED) || board.isGameOver(!board.RED);
+            final boolean mated = board.hasLost(board.redToMove) || board.hasLost(!board.redToMove);
             // Judged on the board the move just landed on, before either side is put on the clock.
             final Board.Repeat repeat = mated ? Board.Repeat.NONE : board.judgeRepetition();
             mainHandler.post(() -> {
@@ -267,7 +267,7 @@ public class ChineseChessGame extends View {
                 }
                 if (listener == null) return;
                 if (mated) {
-                    listener.onGameOver(board.RED, End.CHECKMATE);
+                    listener.onGameOver(board.redToMove, End.CHECKMATE);
                     return;
                 }
                 // The player is the black side, so red losing is the player winning.
@@ -299,7 +299,7 @@ public class ChineseChessGame extends View {
         }
         final int started = generation;
         executor.execute(() -> {
-            final State pos = ai.generateMove(board.RED);
+            final State pos = ai.generateMove(board.redToMove);
             mainHandler.post(() -> {
                 if (started != generation) return;
                 if (listener != null) {
@@ -307,9 +307,9 @@ public class ChineseChessGame extends View {
                 }
                 // The clock may have run out while the search was still running.
                 if (isGameOver) return;
-                board.prevMove = pos.prev;
-                board.currMove = pos.curr;
-                move(pos.curr.x, pos.curr.y);
+                board.prevMove = pos.from;
+                board.currMove = pos.to;
+                move(pos.to.x, pos.to.y);
             });
         });
     }

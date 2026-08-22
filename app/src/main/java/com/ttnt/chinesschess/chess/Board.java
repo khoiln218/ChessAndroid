@@ -77,7 +77,12 @@ public final class Board {
     public Point prevMove;
     public boolean select;
     public boolean move;
-    public boolean RED;
+    /**
+     * Whose turn it is. Named apart from the {@code side} the methods below take: those name the
+     * colour a question is about, which is not always the colour to move. Throughout the class a
+     * side is a boolean, and {@code true} is Red.
+     */
+    public boolean redToMove;
     public ArrayList<State> listUndo;
 
     public Board(boolean side) {
@@ -93,7 +98,7 @@ public final class Board {
         prevMove = new Point(-1, -1);
         this.select = false;
         this.move = false;
-        this.RED = side;
+        this.redToMove = side;
         restartHistory();
     }
 
@@ -110,7 +115,7 @@ public final class Board {
         this.prevMove = new Point(b.prevMove);
         this.select = b.select;
         this.move = b.move;
-        this.RED = b.RED;
+        this.redToMove = b.redToMove;
         // A copy is what the search works on; it carries the position but not the game record.
         key = computeKey();
     }
@@ -124,7 +129,7 @@ public final class Board {
 
     /** Reads the key of the position as it stands, the slow way - only when the board is set. */
     public long computeKey() {
-        long k = RED ? ZOBRIST_SIDE : 0L;
+        long k = redToMove ? ZOBRIST_SIDE : 0L;
         for (int x = 0; x < ROW; x++) {
             for (int y = 0; y < COL; y++) {
                 byte v = cell[x][y];
@@ -147,7 +152,7 @@ public final class Board {
     private void restartHistory() {
         key = computeKey();
         history.clear();
-        history.add(new Ply(key, !RED, false, false));
+        history.add(new Ply(key, !redToMove, false, false));
     }
 
     public byte getValue(int x, int y) {
@@ -158,7 +163,7 @@ public final class Board {
 
     public boolean isCheckSelect(int x, int y) {
         byte value = getValue(x, y);
-        if (RED) return value > 14;
+        if (redToMove) return value > 14;
         else return value >= 8 && value <= 14;
     }
 
@@ -197,7 +202,7 @@ public final class Board {
     private final static int[] HORSE_Y = {2, -2, 2, -2, 1, -1, 1, -1};
 
     /**
-     * Whether {@code red}'s general is safe where it stands - the test every generated move has
+     * Whether {@code side}'s general is safe where it stands - the test every generated move has
      * to pass, and by far the most-run code in the app.
      *
      * <p>Rather than asking each enemy piece in turn whether it reaches the general, this looks
@@ -206,12 +211,12 @@ public final class Board {
      * a soldier could. Advisors and elephants are skipped - neither can leave its own half of the
      * board, so neither can ever attack a general. Nothing is allocated on the way.
      */
-    public boolean kingSafe(boolean red) {
-        byte general = red ? (byte) 15 : (byte) 8;
+    public boolean kingSafe(boolean side) {
+        byte general = side ? (byte) 15 : (byte) 8;
         int kx = -1;
         int ky = -1;
         // A general never leaves its palace, so nine squares are enough to find it.
-        int firstRow = red ? 0 : 7;
+        int firstRow = side ? 0 : 7;
         for (int x = firstRow; x < firstRow + 3 && kx < 0; x++) {
             for (int y = 3; y <= 5; y++) {
                 if (cell[x][y] == general) {
@@ -234,7 +239,7 @@ public final class Board {
             }
             if (!inside(x, y)) continue;
             byte first = cell[x][y];
-            if (isEnemy(first, red)) {
+            if (isEnemy(first, side)) {
                 int kind = kind(first);
                 if (kind == KIND_ROOK) return false;
                 // The generals may not face each other with nothing in between.
@@ -245,7 +250,7 @@ public final class Board {
                 x += dx;
                 y += dy;
             } while (inside(x, y) && cell[x][y] == 0);
-            if (inside(x, y) && isEnemy(cell[x][y], red) && kind(cell[x][y]) == KIND_CANNON) {
+            if (inside(x, y) && isEnemy(cell[x][y], side) && kind(cell[x][y]) == KIND_CANNON) {
                 return false;
             }
         }
@@ -255,7 +260,7 @@ public final class Board {
             int y = ky + HORSE_Y[h];
             if (!inside(x, y)) continue;
             byte value = cell[x][y];
-            if (!isEnemy(value, red) || kind(value) != KIND_KNIGHT) continue;
+            if (!isEnemy(value, side) || kind(value) != KIND_KNIGHT) continue;
             // A horse is blocked by whatever stands beside it, on the long leg of its move.
             int lx = x;
             int ly = y;
@@ -265,47 +270,27 @@ public final class Board {
         }
 
         // A soldier attacks the square ahead of it, and to either side. Which way is "ahead"
-        // depends on its colour: red starts at the top of the board and moves down.
+        // depends on its colour: Red starts at the top of the board and moves down.
         byte above = getValue(kx - 1, ky);
-        if (isEnemy(above, red) && kind(above) == KIND_PAWN && above > 14) return false;
+        if (isEnemy(above, side) && kind(above) == KIND_PAWN && above > 14) return false;
         byte below = getValue(kx + 1, ky);
-        if (isEnemy(below, red) && kind(below) == KIND_PAWN && below <= 14) return false;
+        if (isEnemy(below, side) && kind(below) == KIND_PAWN && below <= 14) return false;
         byte left = getValue(kx, ky - 1);
-        if (isEnemy(left, red) && kind(left) == KIND_PAWN) return false;
+        if (isEnemy(left, side) && kind(left) == KIND_PAWN) return false;
         byte right = getValue(kx, ky + 1);
-        return !isEnemy(right, red) || kind(right) != KIND_PAWN;
+        return !isEnemy(right, side) || kind(right) != KIND_PAWN;
     }
 
     private static boolean inside(int x, int y) {
         return x >= 0 && x < ROW && y >= 0 && y < COL;
     }
 
-    private static boolean isEnemy(byte value, boolean red) {
-        return value != 0 && (value > 14) != red;
+    private static boolean isEnemy(byte value, boolean side) {
+        return value != 0 && (value > 14) != side;
     }
 
     private static int kind(byte value) {
         return value > 14 ? value - 15 : value - 8;
-    }
-
-    public ArrayList<Point> findPieces(boolean _RED) {
-        ArrayList<Point> allPiece = new ArrayList<>();
-        allPiece.add(0, new Point(-1, -1));
-        for (int i = 0; i < ROW; i++) {
-            for (int j = 0; j < COL; j++) {
-                byte val = cell[i][j];
-                if (val >= 8 && val <= 21) {
-                    if ((_RED && val == 15) || (!_RED && val == 8)) {
-                        allPiece.remove(0);
-                        allPiece.add(0, new Point(i, j));
-                    }
-                    if ((_RED && val <= 14) || (!_RED && val > 14)) {
-                        allPiece.add(new Point(i, j));
-                    }
-                }
-            }
-        }
-        return allPiece;
     }
 
     public ArrayList<State> allMove(Point pos) {
@@ -329,7 +314,7 @@ public final class Board {
     }
 
     /**
-     * Appends every move {@code red} has to {@code out}, in the order the board is read - down
+     * Appends every move {@code side} has to {@code out}, in the order the board is read - down
      * the rows, left to right. The search leans on that order being fixed: it picks moves out of
      * the list by score, and moves of equal score are tried in the order they arrived here.
      *
@@ -337,12 +322,12 @@ public final class Board {
      * @param legalOnly    keep only moves that leave one's own general safe. Off, the list is
      *                     pseudo-legal and the caller must retest each move it actually plays.
      */
-    void collect(boolean red, boolean capturesOnly, boolean legalOnly, ArrayList<State> out) {
+    void collect(boolean side, boolean capturesOnly, boolean legalOnly, ArrayList<State> out) {
         for (int x = 0; x < ROW; x++) {
             byte[] row = cell[x];
             for (int y = 0; y < COL; y++) {
                 byte value = row[y];
-                if (value < 8 || (value > 14) != red) continue;
+                if (value < 8 || (value > 14) != side) continue;
                 Piece piece = mover(value);
                 piece.allPossibleMove = out;
                 piece.capturesOnly = capturesOnly;
@@ -357,18 +342,18 @@ public final class Board {
     private final ArrayList<State> firstFound = new ArrayList<>(1);
 
     /**
-     * Whether {@code red} has any legal move at all - the mate and stalemate test, both of which
+     * Whether {@code side} has any legal move at all - the mate and stalemate test, both of which
      * xiangqi scores as a loss. It stops at the first one it finds, which is almost always on
      * the first piece it looks at, so it costs a fraction of listing every move to count them.
      */
-    boolean hasLegalMove(boolean red) {
+    boolean hasLegalMove(boolean side) {
         ArrayList<State> one = firstFound;
         one.clear();
         for (int x = 0; x < ROW; x++) {
             byte[] row = cell[x];
             for (int y = 0; y < COL; y++) {
                 byte value = row[y];
-                if (value < 8 || (value > 14) != red) continue;
+                if (value < 8 || (value > 14) != side) continue;
                 Piece piece = mover(value);
                 piece.allPossibleMove = one;
                 piece.capturesOnly = false;
@@ -381,55 +366,20 @@ public final class Board {
         return false;
     }
 
-    /** Every legal move of the side {@code _RED} is <em>not</em> playing. */
-    public ArrayList<State> allMoves(boolean _RED) {
+    /** Every legal move {@code side} has. */
+    public ArrayList<State> allMoves(boolean side) {
         ArrayList<State> arrMoves = new ArrayList<>();
-        collect(!_RED, false, true, arrMoves);
+        collect(side, false, true, arrMoves);
         return arrMoves;
     }
 
-    public boolean isGameOver(boolean _RED) {
-        ArrayList<Point> allPiece = findPieces(_RED);
-        for (int i = 1; i < allPiece.size(); i++) {
-            Point pos = allPiece.get(i);
-            ArrayList<State> arrMoves;
-            byte val = cell[pos.x][pos.y];
-            arrMoves = switch (val) {
-                case 8, 15 -> {
-                    CKing king = new CKing(this, pos);
-                    yield king.findAllPossibleMoves();
-                }
-                case 9, 16 -> {
-                    CBishop bishop = new CBishop(this, pos);
-                    yield bishop.findAllPossibleMoves();
-                }
-                case 10, 17 -> {
-                    CElephant elephant = new CElephant(this, pos);
-                    yield elephant.findAllPossibleMoves();
-                }
-                case 11, 18 -> {
-                    CKnight knight = new CKnight(this, pos);
-                    yield knight.findAllPossibleMoves();
-                }
-                case 12, 19 -> {
-                    CRook rook = new CRook(this, pos);
-                    yield rook.findAllPossibleMoves();
-                }
-                case 13, 20 -> {
-                    CCannon cannon = new CCannon(this, pos);
-                    yield cannon.findAllPossibleMoves();
-                }
-                case 14, 21 -> {
-                    CPawn pawn = new CPawn(this, pos);
-                    yield pawn.findAllPossibleMoves();
-                }
-                default -> null;
-            };
-            if (arrMoves != null && !arrMoves.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
+    /**
+     * Whether {@code side} has lost where the board stands. It has, if it has no legal move at
+     * all: that is mate when its general is under attack and stalemate when it is not, and
+     * xiangqi scores the two the same way.
+     */
+    public boolean hasLost(boolean side) {
+        return !hasLegalMove(side);
     }
 
     public void select(int x, int y) {
@@ -440,19 +390,19 @@ public final class Board {
 
     public void moveTo(int x, int y) {
         currMove = new Point(x, y);
-        byte val1 = getValue(prevMove.x, prevMove.y);
-        byte val2 = getValue(currMove.x, currMove.y);
-        State played = new State(prevMove, currMove, val1, val2);
+        byte piece = getValue(prevMove.x, prevMove.y);
+        byte captured = getValue(currMove.x, currMove.y);
+        State played = new State(prevMove, currMove, piece, captured);
         listUndo.add(played);
-        cell[x][y] = val1;
+        cell[x][y] = piece;
         cell[prevMove.x][prevMove.y] = 0;
         select = false;
         move = true;
 
-        boolean mover = val1 > 14;
-        key ^= ZOBRIST[played.prev.x * COL + played.prev.y][val1];
-        key ^= ZOBRIST[played.curr.x * COL + played.curr.y][val1];
-        if (val2 != 0) key ^= ZOBRIST[played.curr.x * COL + played.curr.y][val2];
+        boolean mover = piece > 14;
+        key ^= ZOBRIST[played.from.x * COL + played.from.y][piece];
+        key ^= ZOBRIST[played.to.x * COL + played.to.y][piece];
+        if (captured != 0) key ^= ZOBRIST[played.to.x * COL + played.to.y][captured];
         key ^= ZOBRIST_SIDE;
         history.add(new Ply(key, mover, !kingSafe(!mover), isChasing(mover)));
 
@@ -526,10 +476,10 @@ public final class Board {
      * that is defended is being offered a trade, not hunted.
      */
     public boolean isChasing(boolean mover) {
-        ArrayList<State> moves = allMoves(!mover);
+        ArrayList<State> moves = allMoves(mover);
         for (State m : moves) {
-            if (m.value2 == 0) continue;
-            if (kind(m.value2) == KIND_KING) continue;
+            if (m.captured == 0) continue;
+            if (kind(m.captured) == KIND_KING) continue;
             if (!defended(m, mover)) return true;
         }
         return false;
@@ -537,25 +487,25 @@ public final class Board {
 
     /** Whether the other side could take back on the square {@code capture} lands on. */
     private boolean defended(State capture, boolean mover) {
-        byte from = cell[capture.prev.x][capture.prev.y];
-        byte to = cell[capture.curr.x][capture.curr.y];
-        cell[capture.curr.x][capture.curr.y] = from;
-        cell[capture.prev.x][capture.prev.y] = 0;
+        byte from = cell[capture.from.x][capture.from.y];
+        byte to = cell[capture.to.x][capture.to.y];
+        cell[capture.to.x][capture.to.y] = from;
+        cell[capture.from.x][capture.from.y] = 0;
 
         boolean answered = false;
-        for (State reply : allMoves(mover)) {
-            if (reply.curr.x == capture.curr.x && reply.curr.y == capture.curr.y) {
+        for (State reply : allMoves(!mover)) {
+            if (reply.to.x == capture.to.x && reply.to.y == capture.to.y) {
                 answered = true;
                 break;
             }
         }
 
-        cell[capture.prev.x][capture.prev.y] = from;
-        cell[capture.curr.x][capture.curr.y] = to;
+        cell[capture.from.x][capture.from.y] = from;
+        cell[capture.to.x][capture.to.y] = to;
         return answered;
     }
 
     public void switchPlayer() {
-        RED = !RED;
+        redToMove = !redToMove;
     }
 }

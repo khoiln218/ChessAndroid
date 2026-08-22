@@ -15,7 +15,7 @@ import java.util.Comparator;
  * no legal move has lost - in xiangqi stalemate is a loss too - and is scored {@code -(MATE-ply)},
  * measured in plies from the root so that a mate found sooner beats the same mate found later.
  */
-public class _AI {
+public class AI {
 
     /** Beyond any score {@link #eval} can produce; the material on a full board sums to ~570. */
     private final static int INF = 1_000_000;
@@ -123,7 +123,7 @@ public class _AI {
      * single ply changes how the machine plays less than it sounds like it should: one side's
      * reply is only half an exchange, and it takes the pair to see the exchange through.
      */
-    public _AI(Board b, int level) {
+    public AI(Board b, int level) {
         this.board = b;
         int lv = Math.max(1, level);
         // A level of 0 would never run an iteration, leaving no move to play.
@@ -174,8 +174,8 @@ public class _AI {
     }
 
     private static int captureScore(State move) {
-        if (move.value2 == 0) return 0;
-        return pieceValue(move.value2) * 10 - pieceValue(move.value1);
+        if (move.captured == 0) return 0;
+        return pieceValue(move.captured) * 10 - pieceValue(move.piece);
     }
 
     /**
@@ -188,13 +188,13 @@ public class _AI {
     private static final int[][] PIECE_SQUARE = new int[22][Board.ROW * Board.COL];
 
     static {
-        table((byte) 8, (byte) 15, CKing.KingTable);
-        table((byte) 9, (byte) 16, CBishop.BishopTable);
-        table((byte) 10, (byte) 17, CElephant.ElephantTable);
-        table((byte) 11, (byte) 18, CKnight.KnightTable);
-        table((byte) 12, (byte) 19, CRook.RookTable);
-        table((byte) 13, (byte) 20, CCannon.CannonTable);
-        table((byte) 14, (byte) 21, CPawn.PawnTable);
+        table((byte) 8, (byte) 15, CKing.KING_TABLE);
+        table((byte) 9, (byte) 16, CBishop.BISHOP_TABLE);
+        table((byte) 10, (byte) 17, CElephant.ELEPHANT_TABLE);
+        table((byte) 11, (byte) 18, CKnight.KNIGHT_TABLE);
+        table((byte) 12, (byte) 19, CRook.ROOK_TABLE);
+        table((byte) 13, (byte) 20, CCannon.CANNON_TABLE);
+        table((byte) 14, (byte) 21, CPawn.PAWN_TABLE);
     }
 
     /**
@@ -262,10 +262,10 @@ public class _AI {
     }
 
     /** Penalty for a rook that has not left its starting corner, boxed in by its own knight. */
-    private int development(boolean red) {
-        int row = red ? 0 : 9;
-        byte rook = red ? (byte) 19 : (byte) 12;
-        byte knight = red ? (byte) 18 : (byte) 11;
+    private int development(boolean side) {
+        int row = side ? 0 : 9;
+        byte rook = side ? (byte) 19 : (byte) 12;
+        byte knight = side ? (byte) 18 : (byte) 11;
         int s = 0;
         if (clone.cell[row][0] == rook && clone.cell[row][1] == knight) s -= 5;
         if (clone.cell[row][8] == rook && clone.cell[row][7] == knight) s -= 5;
@@ -273,20 +273,20 @@ public class _AI {
     }
 
     void doMove(State state) {
-        clone.cell[state.curr.x][state.curr.y] = state.value1;
-        clone.cell[state.prev.x][state.prev.y] = 0;
-        if (isHeavy(state.value2)) {
-            if (state.value2 > 14) heavyRed--;
+        clone.cell[state.to.x][state.to.y] = state.piece;
+        clone.cell[state.from.x][state.from.y] = 0;
+        if (isHeavy(state.captured)) {
+            if (state.captured > 14) heavyRed--;
             else heavyBlack--;
         }
         toggle(state);
     }
 
     void reMove(State state) {
-        clone.cell[state.curr.x][state.curr.y] = state.value2;
-        clone.cell[state.prev.x][state.prev.y] = state.value1;
-        if (isHeavy(state.value2)) {
-            if (state.value2 > 14) heavyRed++;
+        clone.cell[state.to.x][state.to.y] = state.captured;
+        clone.cell[state.from.x][state.from.y] = state.piece;
+        if (isHeavy(state.captured)) {
+            if (state.captured > 14) heavyRed++;
             else heavyBlack++;
         }
         toggle(state);
@@ -299,17 +299,17 @@ public class _AI {
 
     /** Xor is its own inverse, so making and unmaking a move run the same four operations. */
     private void toggle(State state) {
-        int from = state.prev.x * Board.COL + state.prev.y;
-        int to = state.curr.x * Board.COL + state.curr.y;
-        hash ^= Board.ZOBRIST[from][state.value1];
-        hash ^= Board.ZOBRIST[to][state.value1];
-        if (state.value2 != 0) hash ^= Board.ZOBRIST[to][state.value2];
+        int from = state.from.x * Board.COL + state.from.y;
+        int to = state.to.x * Board.COL + state.to.y;
+        hash ^= Board.ZOBRIST[from][state.piece];
+        hash ^= Board.ZOBRIST[to][state.piece];
+        if (state.captured != 0) hash ^= Board.ZOBRIST[to][state.captured];
         hash ^= Board.ZOBRIST_SIDE;
     }
 
     private static int code(State move) {
-        return ((move.prev.x * Board.COL + move.prev.y) << 8)
-                | (move.curr.x * Board.COL + move.curr.y);
+        return ((move.from.x * Board.COL + move.from.y) << 8)
+                | (move.to.x * Board.COL + move.to.y);
     }
 
     /** Move scores, one array per level of the stack, grown to fit and reused like the lists. */
@@ -365,8 +365,8 @@ public class _AI {
     private int moveScore(State move, int wanted, int ply) {
         int c = code(move);
         if (c == wanted) return 1 << 26;
-        if (move.value2 != 0) {
-            return (1 << 22) + pieceValue(move.value2) * 16 - pieceValue(move.value1);
+        if (move.captured != 0) {
+            return (1 << 22) + pieceValue(move.captured) * 16 - pieceValue(move.piece);
         }
         if (ply < MAX_PLY) {
             if (c == killers[ply][0]) return (1 << 21) + 1;
@@ -377,7 +377,7 @@ public class _AI {
 
     /** Remembers a quiet move that caused a cutoff, so its siblings are tried after it. */
     private void remember(State move, int depth, int ply) {
-        if (move.value2 != 0) return;
+        if (move.captured != 0) return;
         int c = code(move);
         if (ply < MAX_PLY && killers[ply][0] != c) {
             killers[ply][1] = killers[ply][0];
@@ -537,7 +537,7 @@ public class _AI {
         for (State m : moves) {
             // Even winning this piece outright would not reach alpha, and neither will anything
             // behind it, since the captures are ordered by what they win.
-            if (stand + evalValue(m.value2) + DELTA < alpha) break;
+            if (stand + evalValue(m.captured) + DELTA < alpha) break;
             doMove(m);
             int value = -quiesce(!side, -beta, -alpha, ply + 1);
             reMove(m);
@@ -565,11 +565,11 @@ public class _AI {
      * the pruning at the next depth comes from - so the repeated shallow searches more than pay
      * for themselves.
      */
-    public State generateMove(boolean RED) {
+    public State generateMove(boolean side) {
         clone = new Board(board);
         nodes = 0;
         deadline = System.currentTimeMillis() + budgetMs;
-        hash = zobristOf(RED);
+        hash = zobristOf(side);
         heavyRed = 0;
         heavyBlack = 0;
         for (int x = 0; x < Board.ROW; x++) {
@@ -593,7 +593,7 @@ public class _AI {
         long started = System.currentTimeMillis();
 
         ArrayList<State> rootMoves = new ArrayList<>();
-        clone.collect(RED, false, true, rootMoves);
+        clone.collect(side, false, true, rootMoves);
         if (rootMoves.isEmpty()) return null;
         rootMoves.sort(BY_CAPTURE);
         // Something legal to play even if the very first iteration does not finish.
@@ -603,7 +603,7 @@ public class _AI {
         for (int depth = 1; depth <= maxDepth; depth++) {
             if (depth > 1 && !worthDeepening(started)) break;
             aborted = false;
-            State found = searchRoot(rootMoves, depth, RED);
+            State found = searchRoot(rootMoves, depth, side);
             if (aborted) break;
             bestMove = found;
             reached = depth;
@@ -626,8 +626,8 @@ public class _AI {
     }
 
     /** The key of the position on {@link #clone}, read the slow way, once per search. */
-    private long zobristOf(boolean red) {
-        long key = red ? Board.ZOBRIST_SIDE : 0L;
+    private long zobristOf(boolean side) {
+        long key = side ? Board.ZOBRIST_SIDE : 0L;
         for (int x = 0; x < Board.ROW; x++) {
             for (int y = 0; y < Board.COL; y++) {
                 byte v = clone.cell[x][y];

@@ -98,7 +98,7 @@ public class Graphics {
 
     /** Kept so the pieces can be redrawn when the size or the theme changes. */
     private final Resources res;
-    /** Indexed by {@code cell value - 8}: black tuong..tot, then red tuong..tot. */
+    /** Indexed by {@code cell value - 8}: black general..soldier, then red general..soldier. */
     private Bitmap[] pieces;
     private final Bitmap imageSelected;
     private final Bitmap imageMoveDot;
@@ -347,7 +347,7 @@ public class Graphics {
                 Math.max(x1, x2) + pad, Math.max(y1, y2) + pad);
     }
 
-    public void drawBanCo(Canvas canvas) {
+    public void drawBoard(Canvas canvas) {
         if (boardCache == null) return;
         if (!takeClip(canvas) || !Rect.intersects(clipBounds, panelBounds)) return;
         // One blit of an already painted board, so a partial repaint lands pixel-exact on top of
@@ -363,7 +363,7 @@ public class Graphics {
     }
 
     /** {@code skip} is the square a piece is currently sliding out of, or null. */
-    public void drawQuanCo(Canvas canvas, byte[][] cell, Point skip) {
+    public void drawPieces(Canvas canvas, byte[][] cell, Point skip) {
         takeClip(canvas);
         for (int i = 0; i < ROW; i++)
             for (int j = 0; j < COL; j++) {
@@ -405,10 +405,10 @@ public class Graphics {
     }
 
     /** A green dot on empty targets, a red capture frame where an enemy piece can be taken. */
-    public void drawAllPossibleMove(Canvas canvas, ArrayList<State> posibleMove, byte[][] cell) {
+    public void drawAllPossibleMove(Canvas canvas, ArrayList<State> possibleMove, byte[][] cell) {
         takeClip(canvas);
-        for (State state : posibleMove) {
-            Point target = state.curr;
+        for (State state : possibleMove) {
+            Point target = state.to;
             boolean empty = cell[target.x][target.y] == 0;
             drawIfVisible(canvas, empty ? imageMoveDot : imageCapture,
                     markRect(target, empty ? DOT_SIZE : CAPTURE_SIZE));

@@ -136,6 +136,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
      * moves - a fixed 50dp box would clip the taller creatives wide screens get served. The ids in
      * strings.xml are Google's test ids for now.
      */
+    @SuppressWarnings("deprecation")
     private void setUpAds() {
         MobileAds.initialize(this);
 
@@ -417,7 +418,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
                     f.write(game.board.prevMove.y);
                     f.write(game.board.select ? 1 : 0);
                     f.write(game.board.move ? 1 : 0);
-                    f.write(game.board.RED ? 1 : 0);
+                    f.write(game.board.redToMove ? 1 : 0);
                 }
                 f.flush();
             } catch (IOException e) {
@@ -443,7 +444,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
                     game.board.prevMove = new Point(reader.read(), reader.read());
                     game.board.select = reader.read() == 1;
                     game.board.move = reader.read() == 1;
-                    game.board.RED = reader.read() == 1;
+                    game.board.redToMove = reader.read() == 1;
                     game.board.resyncHistory();
                 } else
                     game.isGameOver = false;
@@ -460,17 +461,17 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
             //undo your move
             State pos = game.board.listUndo.get(game.board.listUndo.size() - 1);
             game.board.listUndo.remove(game.board.listUndo.size() - 1);
-            game.board.prevMove = pos.prev;
-            game.board.currMove = pos.curr;
-            game.board.cell[pos.prev.x][pos.prev.y] = pos.value1;
-            game.board.cell[pos.curr.x][pos.curr.y] = pos.value2;
+            game.board.prevMove = pos.from;
+            game.board.currMove = pos.to;
+            game.board.cell[pos.from.x][pos.from.y] = pos.piece;
+            game.board.cell[pos.to.x][pos.to.y] = pos.captured;
             //undo computer
             pos = game.board.listUndo.get(game.board.listUndo.size() - 1);
             game.board.listUndo.remove(game.board.listUndo.size() - 1);
-            game.board.prevMove = pos.prev;
-            game.board.currMove = pos.curr;
-            game.board.cell[pos.prev.x][pos.prev.y] = pos.value1;
-            game.board.cell[pos.curr.x][pos.curr.y] = pos.value2;
+            game.board.prevMove = pos.from;
+            game.board.currMove = pos.to;
+            game.board.cell[pos.from.x][pos.from.y] = pos.piece;
+            game.board.cell[pos.to.x][pos.to.y] = pos.captured;
             // Both halves of the round come off the repetition record too, or the position
             // would be judged against a history that no longer matches the board.
             game.board.undo();
@@ -480,12 +481,12 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
                 game.clearLastMove();
             } else {
                 State last = game.board.listUndo.get(game.board.listUndo.size() - 1);
-                game.showLastMove(last.prev, last.curr);
+                game.showLastMove(last.from, last.to);
             }
             //reset result
             game.isGameOver = false;
             game.invalidate();
-            onTurnStarted(game.board.RED);
+            onTurnStarted(game.board.redToMove);
         }
     }
 }
