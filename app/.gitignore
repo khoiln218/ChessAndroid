@@ -1,3 +1,5 @@
 /build
 /chess.jks
+*.jks
+*.keystore
 /release/

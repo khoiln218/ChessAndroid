@@ -1,0 +1,13 @@
+# Copy to key.properties (which git ignores) and fill in for a signed release build.
+#
+# Create the keystore once, from the project root:
+#   keytool -genkeypair -v -keystore app/chess.jks -alias chess \
+#           -keyalg RSA -keysize 2048 -validity 10000
+#
+# Keep the .jks and this file's filled-in copy off the repository and somewhere you can restore
+# from: losing them means no further update can be published under the same app listing.
+
+storePassword=
+keyPassword=
+keyAlias=chess
+storeFile=chess.jks

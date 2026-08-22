@@ -2,6 +2,17 @@ plugins {
     id 'com.android.application'
 }
 
+// Signing credentials live outside the repository: key.properties at the project root, which git
+// ignores, naming a keystore that git ignores too. A clone without them still configures and still
+// builds debug - only the release build comes out unsigned, which is a plain outcome rather than a
+// failure nobody can act on.
+def keystorePropertiesFile = rootProject.file('key.properties')
+def keystoreProperties = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+}
+def signingReady = keystoreProperties.containsKey('storeFile')
+
 android {
     namespace = 'com.ttnt.chinesschess'
     //noinspection GradleDependency
@@ -13,7 +24,19 @@ android {
         //noinspection OldTargetApi
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
+    }
+
+    signingConfigs {
+        release {
+            if (signingReady) {
+                // Relative to this module, so key.properties names the keystore beside it.
+                storeFile = file(keystoreProperties['storeFile'])
+                storePassword = keystoreProperties['storePassword']
+                keyAlias = keystoreProperties['keyAlias']
+                keyPassword = keystoreProperties['keyPassword']
+            }
+        }
     }
 
     buildTypes {
@@ -21,6 +44,9 @@ android {
             minifyEnabled = true
             shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            if (signingReady) {
+                signingConfig = signingConfigs.release
+            }
         }
     }
 

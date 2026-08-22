@@ -1,17 +1,11 @@
-# Add project specific ProGuard rules here.
-# By default, the flags in this file are appended to flags specified
-# in D:\Soft\adt-bundle-windows-x86_64\sdk/tools/proguard/proguard-android.txt
-# You can edit the include path and order by changing the proguardFiles
-# directive in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Rules added to the ones in proguard-android-optimize.txt, which build.gradle names alongside
+# this file. Everything the app itself does is plain Java the shrinker can follow; the entries
+# below are all about one library that arrives underneath the ads SDK.
 
-# Add any project specific keep options here:
-
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# WorkManager keeps its state in a Room database, and Room reaches its generated implementation
+# by name - Class.forName("...WorkDatabase_Impl") - which R8 has no way to see. Renamed or
+# removed, the first launch of a release build dies on "Failed to create an instance of
+# androidx.work.impl.WorkDatabase" before any activity starts.
+-keep class androidx.work.impl.WorkDatabase_Impl {
+    <init>();
+}
