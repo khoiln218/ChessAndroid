@@ -1,0 +1,11 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/sideBlack">
+    <!-- Three rising bars: how hard the machine is set to play -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M4,15h3v5H4zM10.5,9h3v11h-3zM17,4h3v16h-3z" />
+</vector>

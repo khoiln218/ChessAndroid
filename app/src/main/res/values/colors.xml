@@ -9,6 +9,12 @@
     <color name="bgMid">#F0E2C6</color>
     <color name="bgBottom">#DCC59A</color>
     <color name="gold">#C7A24A</color>
+    <!-- The plaque worn by the difficulty badge: lit crown, gold foot, shaded lip, cut line -->
+    <color name="badgeCrown">#FFFBEF</color>
+    <color name="badgeFoot">#EFD8A2</color>
+    <color name="goldLit">#E2C173</color>
+    <color name="goldDeep">#8A6B24</color>
+    <color name="badgeCut">#55C7A24A</color>
 
     <color name="cardIdle">#F2FFFFFF</color>
     <color name="cardActive">#FFFDF6</color>

@@ -8,7 +8,6 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -16,6 +15,7 @@ import androidx.annotation.NonNull;
 
 import com.ttnt.chinesschess.chess.Board;
 import com.ttnt.chinesschess.chess.State;
+import com.ttnt.chinesschess.Settings;
 import com.ttnt.chinesschess.chess.AI;
 import com.ttnt.chinesschess.graph.BoardTheme;
 import com.ttnt.chinesschess.graph.Graphics;
@@ -25,7 +25,11 @@ import java.util.concurrent.Executors;
 
 @SuppressLint("ViewConstructor")
 public class ChineseChessGame extends View {
-    AI ai;
+    /**
+     * Replaced when the strength is changed mid-game, which is read on the search thread, so the
+     * two threads have to agree on which one they are looking at.
+     */
+    volatile AI ai;
     Graphics graph;
     public Board board;
     public boolean isGameOver;
@@ -74,7 +78,7 @@ public class ChineseChessGame extends View {
     public ChineseChessGame(Context context, int level, boolean turn) {
         super(context);
         this.turn = turn;
-        graph = new Graphics(getResources(), BoardTheme.load(context));
+        graph = new Graphics(getResources(), Settings.theme(context));
         board = new Board(!turn);
         ai = new AI(board, level);
         setFocusable(true);
@@ -92,18 +96,41 @@ public class ChineseChessGame extends View {
     }
 
     /**
-     * Starts a fresh game on the board and view that are already here: no activity restart, so the
-     * artwork, the banner and the decoded bitmaps all stay put.
+     * Plays at another strength from the next move on. The search already running keeps the
+     * engine it started with; stopping it to swap would only throw away work that is about to
+     * produce a move anyway.
      */
-    public void newGame() {
+    public void setLevel(int level) {
+        ai = new AI(board, level);
+    }
+
+    /**
+     * Puts a fresh game on the board and view that are already here - no activity restart, so the
+     * artwork, the banner and the decoded bitmaps all stay put. Nothing moves and nothing is
+     * accepted until {@link #start}: the caller may have something to show first.
+     *
+     * @param playerFirst which side opens, re-read rather than remembered, so a turn changed
+     *                    part-way through a session takes effect at the next game
+     */
+    public void newGame(boolean playerFirst) {
         generation++;
+        started = false;
+        turn = playerFirst;
         board.reset(!turn);
         isGameOver = false;
         clearLastMove();
-        start();
+    }
+
+    /** Whether play has actually begun. A board that is only on show takes no moves. */
+    private boolean started;
+
+    /** Whether the game is under way. Before it is, nothing may move and no clock may run. */
+    public boolean isStarted() {
+        return started;
     }
 
     public void start() {
+        started = true;
         if (board.move) {
             // Restored game: the saved board still knows which move ended the last session.
             showLastMove(board.prevMove, board.currMove);
@@ -209,7 +236,7 @@ public class ChineseChessGame extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-            if (!isGameOver && !board.redToMove) {
+            if (started && !isGameOver && !board.redToMove) {
                 // floor, not truncation: the board is centred, so taps above/left of it give a
                 // negative offset that must not round back into row/column 0.
                 int x = (int) Math.floor((event.getY() - Graphics.UP + Graphics.CELL_SIZE / 2f)
@@ -221,12 +248,9 @@ public class ChineseChessGame extends View {
 
                 if (board.isCheckSelect(x, y)) {
                     select(x, y);
-                    Log.e("touch", "select");
                 } else if (board.isCheckMove(x, y)) {
                     move(x, y);
-                    Log.e("touch", "move");
                 } else {
-                    Log.e("touch", "blank");
                     return false;
                 }
                 return true;

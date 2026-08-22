@@ -15,8 +15,11 @@ import android.view.Gravity;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,9 +37,9 @@ import com.google.android.gms.ads.MobileAds;
 import com.ttnt.chinesschess.chess.Board;
 import com.ttnt.chinesschess.chess.State;
 import com.ttnt.chinesschess.game.ChineseChessGame;
+import com.ttnt.chinesschess.game.TurnTimerView;
 import com.ttnt.chinesschess.graph.BoardTheme;
 import com.ttnt.chinesschess.graph.PieceArt;
-import com.ttnt.chinesschess.game.TurnTimerView;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -46,7 +49,14 @@ import java.util.Locale;
 
 public class Game extends AppCompatActivity implements ChineseChessGame.Listener {
 
-    /** A side that does not move within this many milliseconds loses the game. */
+    /**
+     * Set when the lobby is carrying on the saved game rather than starting a fresh one.
+     */
+    public final static String EXTRA_RESUME = "resume_game";
+
+    /**
+     * A side that does not move within this many milliseconds loses the game.
+     */
     private static final long TURN_MILLIS = 3 * 60 * 1000L;
     private static final long TICK_MILLIS = 100L;
 
@@ -91,20 +101,17 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         setContentView(R.layout.game);
         SystemBars.applyInsetsAsPadding(this, findViewById(R.id.game_root));
 
-        int turnGame = 1;
+        // Strength and who opens are settings, read here rather than carried in: the lobby is
+        // where they are chosen, and the only thing this screen needs told is which of the two
+        // ways in was taken.
+        boolean resume = getIntent().getBooleanExtra(EXTRA_RESUME, false);
         int levelGame = Settings.level(this);
 
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            turnGame = extras.getInt("turn_game");
-            levelGame = extras.getInt("level_game", levelGame);
-        }
-
-        if (turnGame == 2) {
+        if (resume) {
             game = new ChineseChessGame(this, levelGame, true);
             loadGame();
         } else {
-            game = new ChineseChessGame(this, levelGame, turnGame == 0);
+            game = new ChineseChessGame(this, levelGame, Settings.playerFirst(this));
         }
 
         setUpAds();
@@ -120,14 +127,22 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         layout.addView(game, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         findViewById(R.id.menu_button).setOnClickListener(this::showGameMenu);
+        findViewById(R.id.settings_button).setOnClickListener(this::showSettingsMenu);
+        findViewById(R.id.river_new_game).setOnClickListener(v -> startNewGame());
 
-        tintAvatars(BoardTheme.load(this));
+        tintAvatars(Settings.theme(this));
         showLevel(levelGame);
         // Carrying on a saved game is not a new one, so only a fresh start counts.
-        showGames(turnGame == 2 ? Settings.gamesPlayed(this) : Settings.bumpGames(this));
 
         game.setListener(this);
-        game.start();
+        // A restored game is picked up where it was left, so it carries straight on. A new one is
+        // only laid out: coming through the door is not the same as sitting down to play, and
+        // nothing runs until the player says they are ready.
+        if (resume) {
+            game.start();
+        } else {
+            awaitReady();
+        }
     }
 
     /**
@@ -159,7 +174,9 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         adView.loadAd(new AdRequest.Builder().build());
     }
 
-    /** Undo and Back live in this overflow menu now, so the board keeps the whole screen. */
+    /**
+     * Undo and Back live in this overflow menu now, so the board keeps the whole screen.
+     */
     private void showGameMenu(View anchor) {
         PopupMenu popup = new PopupMenu(this, anchor);
         popup.inflate(R.menu.game_menu);
@@ -174,10 +191,6 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
                 undoGame();
                 return true;
             }
-            if (id == R.id.action_theme) {
-                openThemeDialog();
-                return true;
-            }
             if (id == R.id.action_back) {
                 finish();
                 return true;
@@ -187,23 +200,78 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         popup.show();
     }
 
-    /** Repaints the board straight away, so the five materials can be compared on the position. */
+    /**
+     * Everything the lobby lets you set, gathered on the machine's own card: how hard it plays,
+     * whether it opens, and what the board is made of. All three are remembered, so what is
+     * chosen here is what the lobby shows next time.
+     */
+    private void showSettingsMenu(View anchor) {
+        PopupMenu popup = new PopupMenu(this, anchor);
+        popup.inflate(R.menu.settings_menu);
+        popup.setForceShowIcon(true);
+        for (int i = 0; i < popup.getMenu().size(); i++) {
+            matchIconToLabel(popup.getMenu().getItem(i));
+        }
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.action_level) {
+                openLevelDialog();
+                return true;
+            }
+            if (id == R.id.action_turn) {
+                openTurnDialog();
+                return true;
+            }
+            if (id == R.id.action_theme) {
+                openThemeDialog();
+                return true;
+            }
+            return false;
+        });
+        popup.show();
+    }
+
+    /**
+     * A new strength applies from the next move, so it can be turned up mid-game.
+     */
+    private void openLevelDialog() {
+        ChoiceDialog.show(this, R.string.level_title,
+                getResources().getTextArray(R.array.level),
+                Settings.level(this) - Settings.DEFAULT_LEVEL, i -> {
+                    int level = i + Settings.DEFAULT_LEVEL;
+                    Settings.saveLevel(this, level);
+                    game.setLevel(level);
+                    showLevel(level);
+                });
+    }
+
+    /**
+     * Which side opens cannot change a game already under way; it takes the next one.
+     */
+    private void openTurnDialog() {
+        ChoiceDialog.show(this, R.string.turn_title,
+                getResources().getTextArray(R.array.select),
+                Settings.playerFirst(this) ? 0 : 1,
+                i -> Settings.savePlayerFirst(this, i == 0));
+    }
+
+    /**
+     * Repaints the board straight away, so the five materials can be compared on the position.
+     */
     private void openThemeDialog() {
         BoardTheme[] themes = BoardTheme.values();
         ChoiceDialog.show(this, R.string.theme_title, BoardTheme.labels(this),
-                BoardTheme.load(this).ordinal(), i -> {
-                    themes[i].save(this);
+                Settings.theme(this).ordinal(), i -> {
+                    Settings.saveTheme(this, themes[i]);
                     game.setTheme(themes[i]);
                     tintAvatars(themes[i]);
                 });
     }
 
 
-    private void showGames(int played) {
-        ((TextView) findViewById(R.id.computer_games)).setText(String.valueOf(played));
-    }
-
-    /** Names the strength the machine is playing at, beside its own name on its panel. */
+    /**
+     * Names the strength the machine is playing at, beside its own name on its panel.
+     */
     private void showLevel(int level) {
         String[] levels = getResources().getStringArray(R.array.level);
         // The lobby numbers its levels from 2; anything outside the list falls back to the first.
@@ -220,7 +288,9 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         dressAvatar(findViewById(R.id.player_avatar), theme, false);
     }
 
-    /** Puts one side's general on a view, inside a ring struck in that side's own colour. */
+    /**
+     * Puts one side's general on a view, inside a ring struck in that side's own colour.
+     */
     private void dressAvatar(ImageView view, BoardTheme theme, boolean red) {
         PieceArt.dressAvatar(view, theme, red);
     }
@@ -273,7 +343,9 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         showResultDialog(playerWon, how);
     }
 
-    /** The end-of-game card: who won, why, and the two ways out of the finished board. */
+    /**
+     * The end-of-game card: who won, why, and the two ways out of the finished board.
+     */
     private void showResultDialog(boolean playerWon, ChineseChessGame.End how) {
         if (isFinishing() || (resultDialog != null && resultDialog.isShowing())) return;
 
@@ -285,7 +357,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         boolean draw = how == ChineseChessGame.End.REPETITION_DRAW;
         // The winner's general fronts the card, in the material the set is currently made of.
         // A draw has no winner, so the player's own general stands there instead.
-        dressAvatar(avatar, BoardTheme.load(this), !draw && !playerWon);
+        dressAvatar(avatar, Settings.theme(this), !draw && !playerWon);
         title.setText(draw ? R.string.result_draw_title
                 : playerWon ? R.string.result_win_title : R.string.result_lose_title);
         title.setTextColor(ContextCompat.getColor(this, draw ? R.color.textMuted
@@ -309,18 +381,96 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
             resultDialog.dismiss();
             finish();
         });
-        content.findViewById(R.id.result_new).setOnClickListener(v -> {
-            resultDialog.dismiss();
-            showGames(Settings.bumpGames(this));
-            game.newGame();
+        content.findViewById(R.id.result_new).setOnClickListener(v -> resultDialog.dismiss());
+        // Waving the card away is not the same as answering it: the game is still over, so the
+        // way into the next one has to stay somewhere on screen.
+        resultDialog.setOnDismissListener(d -> {
+            if (game.isGameOver && !isFinishing()) showRiverButton(R.string.ready_label);
+            else hideRiverButton();
         });
         resultDialog.show();
     }
 
 
-    /** Runs the clock of whichever side is to move; the idle side keeps its ring dimmed. */
+    /**
+     * The board set out with nobody on the clock and nothing accepted, and the one button that
+     * begins it. Which side opens is read now rather than at the tap, so the panels behind the
+     * button already show the game that is about to be played.
+     */
+    private void awaitReady() {
+        computerToMove = !game.turn;
+        remainingMillis = TURN_MILLIS;
+        showClock(remainingMillis);
+        updateStatus();
+        showRiverButton(R.string.ready_label);
+    }
+
+    private void startNewGame() {
+        hideRiverButton();
+        game.newGame(Settings.playerFirst(this));
+        playOpeningFlourish(game::start);
+    }
+
+    /**
+     * The word brushed across the board as a game opens: in on an overshoot, a beat to be read,
+     * then away on a swell, the way a stamp is lifted off the paper. It sits above the board and
+     * is put back out of the way at the end, so it never stands between a finger and a piece.
+     *
+     * <p>The game does not exist yet while it shows: {@code begin} is what starts it, and until
+     * that runs no clock ticks, no piece can be picked up and the machine does not think. A turn
+     * spent reading an announcement is not a turn spent playing, and on a short clock it would
+     * be most of one.
+     */
+    private void playOpeningFlourish(Runnable begin) {
+        View flourish = findViewById(R.id.board_flourish);
+        stopClock();
+        // Both clocks stand full behind the word, on the sides the game is about to use.
+        computerToMove = !game.turn;
+        remainingMillis = TURN_MILLIS;
+        showClock(remainingMillis);
+        // The panels still carry the last game's words until the new one is under way.
+        updateStatus();
+        flourish.animate().cancel();
+        flourish.setAlpha(0f);
+        flourish.setScaleX(0.55f);
+        flourish.setScaleY(0.55f);
+        flourish.setVisibility(View.VISIBLE);
+        flourish.animate()
+                .alpha(1f).scaleX(1f).scaleY(1f)
+                .setDuration(420)
+                .setInterpolator(new OvershootInterpolator(1.6f))
+                .withEndAction(() -> flourish.animate()
+                        .alpha(0f).scaleX(1.35f).scaleY(1.35f)
+                        .setStartDelay(560)
+                        .setDuration(420)
+                        .setInterpolator(new AccelerateInterpolator())
+                        .withEndAction(() -> {
+                            flourish.setVisibility(View.GONE);
+                            if (!isFinishing()) begin.run();
+                        })
+                        .start())
+                .start();
+    }
+
+    /** Puts the button on the river under the given word, and leaves it there for a tap. */
+    private void showRiverButton(int textRes) {
+        Button button = findViewById(R.id.river_new_game);
+        button.setText(textRes);
+        button.setVisibility(View.VISIBLE);
+    }
+
+    private void hideRiverButton() {
+        findViewById(R.id.river_new_game).setVisibility(View.GONE);
+    }
+
+    /**
+     * Runs the clock of whichever side is to move; the idle side keeps its ring dimmed.
+     */
     private void startClock() {
         clock.removeCallbacks(tick);
+        // The one gate every route to the clock passes through - a turn started, the screen
+        // coming back to the front - so a board that is only waiting to be begun never ticks.
+        if (!game.isStarted()) return;
         deadline = SystemClock.elapsedRealtime() + remainingMillis;
         clockRunning = true;
         showClock(remainingMillis);

@@ -159,6 +159,55 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
+        <!-- Which side opens: a setting, so a new game starts without stopping to ask -->
+        <LinearLayout
+            android:id="@+id/turn_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_side_card_idle"
+            android:elevation="3dp"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="24dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="14dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.02"
+                    android:text="@string/turn_label"
+                    android:textColor="@color/sideBlack"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/lobby_turn_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/first_label"
+                    android:textColor="@color/textMuted"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/lobby_change"
+                android:textColor="@color/gold"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
         <Button
             android:id="@+id/new_button"
             android:layout_width="match_parent"
@@ -171,20 +220,6 @@
             android:textColor="@android:color/white"
             android:textSize="17sp"
             android:textStyle="bold" />
-
-        <Button
-            android:id="@+id/continue_button"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/bg_button_ghost"
-            android:letterSpacing="0.06"
-            android:stateListAnimator="@null"
-            android:text="@string/continue_label"
-            android:textColor="@color/gold"
-            android:textSize="15sp"
-            android:textStyle="bold"
-            android:visibility="gone" />
 
         <View
             android:layout_width="match_parent"

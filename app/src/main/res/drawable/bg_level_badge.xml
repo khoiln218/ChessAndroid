@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    A little plaque, in the manner of an engraved name tally: a deep gold lip along the bottom to
+    lift it off whatever it is pinned to, a face that catches the light at the top and settles into
+    gold at the foot, and a hairline frame set in from the edge the way a border is cut into one.
+
+    Layers rather than a vector, so it holds its shape at any width: a badge reading "Cực khó" is
+    half as wide again as one reading "Dễ", and a stretched path would thin its own borders out.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- The lip it stands on, showing only along the bottom edge -->
+    <item android:top="1dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/goldDeep" />
+            <corners android:radius="5dp" />
+        </shape>
+    </item>
+
+    <!-- The face -->
+    <item android:bottom="1dp">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:endColor="@color/badgeFoot"
+                android:startColor="@color/badgeCrown" />
+            <stroke
+                android:width="1dp"
+                android:color="@color/gold" />
+            <corners android:radius="5dp" />
+        </shape>
+    </item>
+
+    <!-- The cut line inside the border -->
+    <item
+        android:bottom="4dp"
+        android:left="3dp"
+        android:right="3dp"
+        android:top="3dp">
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="1dp"
+                android:color="@color/badgeCut" />
+            <corners android:radius="3dp" />
+        </shape>
+    </item>
+
+</layer-list>

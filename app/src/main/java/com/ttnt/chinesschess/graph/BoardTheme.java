@@ -1,7 +1,6 @@
 package com.ttnt.chinesschess.graph;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 
 import com.ttnt.chinesschess.R;
 
@@ -51,9 +50,6 @@ public enum BoardTheme {
     /** The set the app has always had, and what it falls back to. */
     public final static BoardTheme DEFAULT = MOC;
 
-    private final static String PREFS = "cotuong";
-    private final static String KEY = "board_theme";
-
     public final int labelRes;
     /** Wood at the top left corner of the board, and at the bottom right one. */
     final int woodLight;
@@ -90,19 +86,6 @@ public enum BoardTheme {
         return red ? redRim : blackRim;
     }
 
-    /** The saved choice, or {@link #DEFAULT} if there is none - or if the saved name is stale. */
-    public static BoardTheme load(Context context) {
-        String saved = prefs(context).getString(KEY, DEFAULT.name());
-        for (BoardTheme theme : values()) {
-            if (theme.name().equals(saved)) return theme;
-        }
-        return DEFAULT;
-    }
-
-    public void save(Context context) {
-        prefs(context).edit().putString(KEY, name()).apply();
-    }
-
     /** The five names, in declaration order, ready for a dialog's item list. */
     public static CharSequence[] labels(Context context) {
         BoardTheme[] all = values();
@@ -111,9 +94,5 @@ public enum BoardTheme {
             labels[i] = context.getString(all[i].labelRes);
         }
         return labels;
-    }
-
-    private static SharedPreferences prefs(Context context) {
-        return context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 }

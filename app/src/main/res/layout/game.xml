@@ -40,13 +40,37 @@
         android:paddingEnd="6dp"
         android:paddingBottom="8dp">
 
-        <ImageView
-            android:id="@+id/computer_avatar"
-            android:layout_width="46dp"
-            android:layout_height="46dp"
-            android:background="@drawable/bg_avatar_red"
-            android:padding="5dp"
-            tools:ignore="ContentDescription" />
+        <!-- The machine's face, with what it is set to play at pinned across the foot of it. -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/computer_avatar"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/bg_avatar_red"
+                android:padding="5dp"
+                tools:ignore="ContentDescription" />
+
+            <TextView
+                android:id="@+id/computer_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="@drawable/bg_level_badge"
+                android:paddingStart="6dp"
+                android:paddingTop="1dp"
+                android:paddingEnd="6dp"
+                android:paddingBottom="2dp"
+                android:textColor="@color/gold"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                tools:ignore="SmallSp"
+                tools:text="Cực khó" />
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -56,37 +80,15 @@
             android:gravity="start"
             android:orientation="vertical">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/computer_name"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:id="@+id/computer_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:letterSpacing="0.02"
-                    android:text="@string/computer_label"
-                    android:textColor="@color/sideRed"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/computer_level"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_level_chip"
-                    android:paddingStart="8dp"
-                    android:paddingTop="1dp"
-                    android:paddingEnd="8dp"
-                    android:paddingBottom="2dp"
-                    android:textColor="@color/gold"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    tools:text="Khó" />
-            </LinearLayout>
+                android:letterSpacing="0.02"
+                android:text="@string/computer_label"
+                android:textColor="@color/sideRed"
+                android:textSize="17sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/computer_status"
@@ -102,45 +104,78 @@
             android:layout_width="52dp"
             android:layout_height="52dp" />
 
-        <!-- How many games this machine has been played, in the space the menu used to take. -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:gravity="center_horizontal"
-            android:minWidth="40dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/computer_games"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/gold"
-                android:textSize="17sp"
-                android:textStyle="bold"
-                tools:text="12" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/games_unit"
-                android:textColor="@color/textMuted"
-                android:textSize="10sp"
-                tools:ignore="SmallSp" />
-        </LinearLayout>
+        <!-- What the machine is set to do, next to the machine itself: strength, and who opens. -->
+        <ImageButton
+            android:id="@+id/settings_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/bg_icon_button"
+            android:contentDescription="@string/settings_label"
+            android:padding="8dp"
+            android:src="@drawable/ic_settings"
+            app:tint="@color/gold" />
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/layout"
+    <!-- The board, and one thing that may sit on top of it. The padding is even top and bottom,
+         so the centre of this frame is the centre of the board - which is the river. -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:paddingStart="8dp"
-        android:paddingTop="10dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="10dp" />
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingStart="8dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="10dp" />
+
+        <!-- Brushed across the board as a game opens, then gone. Serif bold is the same
+             register the river characters are drawn in, so it reads as part of the board. -->
+        <TextView
+            android:id="@+id/board_flourish"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:elevation="8dp"
+            android:fontFamily="serif"
+            android:letterSpacing="0.18"
+            android:shadowColor="#66000000"
+            android:shadowDx="0"
+            android:shadowDy="3"
+            android:shadowRadius="10"
+            android:text="@string/start_label"
+            android:textColor="@color/gold"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <!-- The one thing that sets a game going, wearing whichever word fits: it invites the
+             first game on the way in, and offers the next one after a finished one is dismissed.
+             The text here is only the first of those; the other is set from code. -->
+        <Button
+            android:id="@+id/river_new_game"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_button_pill"
+            android:elevation="6dp"
+            android:letterSpacing="0.06"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="5dp"
+            android:stateListAnimator="@null"
+            android:text="@string/ready_label"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </FrameLayout>
 
     <!-- Player: mirrored, so the two sides read as facing each other across the board -->
     <LinearLayout
