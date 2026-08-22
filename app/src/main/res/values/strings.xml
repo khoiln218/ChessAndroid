@@ -15,6 +15,7 @@
     <string name="level_title">Chọn cấp độ</string>
     <string name="level_1_label">Dễ</string>
     <string name="level_2_label">Khó</string>
+    <string name="level_3_label">Cực khó</string>
     
     <string name="player_label">Người chơi (Đen)</string>
     <string name="computer_label">Máy (Đỏ)</string>

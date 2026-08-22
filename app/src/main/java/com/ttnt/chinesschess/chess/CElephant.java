@@ -2,8 +2,6 @@ package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 
-import java.util.ArrayList;
-
 public class CElephant extends Piece {
 
     static int[][] ElephantTable = {
@@ -23,9 +21,12 @@ public class CElephant extends Piece {
         super(board, currMove);
     }
 
+    CElephant(Board board) {
+        super(board);
+    }
+
     @Override
-    public ArrayList<State> findAllPossibleMoves() {
-        allPossibleMove = new ArrayList<>();
+    void generate() {
         byte[] dx = {2, 2, -2, -2};
         byte[] dy = {2, -2, 2, -2};
         for (int i = 0; i < dx.length; i++) {
@@ -34,21 +35,17 @@ public class CElephant extends Piece {
             if (x >= 0 && x <= 9 && y >= 0 && y <= 8) {
                 byte val1 = board.cell[CurrMove.x][CurrMove.y];
                 byte val2 = board.cell[x][y];
-                if (((RED && ((val2 >= 8 && val2 <= 14) || val2 == 0) && x <= 4) || (!RED && (val2 > 14 || val2 == 0) && x >= 5)) && isCheck(new Point(x, y))) {
-                    doMove(x, y);
-                    if (board.kingSafe(RED)) {
-                        allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
-                    }
-                    reMove(x, y, val2);
+                if (((RED && ((val2 >= 8 && val2 <= 14) || val2 == 0) && x <= 4) || (!RED && (val2 > 14 || val2 == 0) && x >= 5)) && legClear(x, y)) {
+                    offer(x, y, val1, val2);
                 }
             }
         }
-        return allPossibleMove;
     }
 
-    boolean isCheck(Point pos) {
-        int dong = pos.x - CurrMove.x;
-        int cot = pos.y - CurrMove.y;
+    /** Whether the diagonal step is open: an elephant is blocked by a piece on its own eye. */
+    boolean legClear(int x, int y) {
+        int dong = x - CurrMove.x;
+        int cot = y - CurrMove.y;
         if (Math.abs(dong) == 2 && Math.abs(cot) == 2) {
             if (dong > 0) {
                 if (cot > 0) {
@@ -65,13 +62,5 @@ public class CElephant extends Piece {
             }
         }
         return false;
-    }
-
-
-    public static int getPositionValue(Point pos, boolean RED) {
-        if (RED) {
-            return ElephantTable[9 - pos.x][8 - pos.y];
-        }
-        return ElephantTable[pos.x][pos.y];
     }
 }

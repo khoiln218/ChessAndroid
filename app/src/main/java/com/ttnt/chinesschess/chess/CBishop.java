@@ -2,8 +2,6 @@ package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 
-import java.util.ArrayList;
-
 public class CBishop extends Piece {
 
     public static int[][] BishopTable = {
@@ -23,9 +21,12 @@ public class CBishop extends Piece {
         super(board, currMove);
     }
 
+    CBishop(Board board) {
+        super(board);
+    }
+
     @Override
-    public ArrayList<State> findAllPossibleMoves() {
-        allPossibleMove = new ArrayList<>();
+    void generate() {
         int[] dx = {1, 1, -1, -1};
         int[] dy = {1, -1, 1, -1};
         for (int i = 0; i < dx.length; i++) {
@@ -35,22 +36,9 @@ public class CBishop extends Piece {
                 byte val1 = board.cell[CurrMove.x][CurrMove.y];
                 byte val2 = board.cell[x][y];
                 if ((RED && ((val2 >= 8 && val2 <= 14) || val2 == 0) && x <= 2) || (!RED && (val2 > 14 || val2 == 0) && x >= 7)) {
-                    doMove(x, y);
-                    if (board.kingSafe(RED)) {
-                        allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
-                    }
-                    reMove(x, y, val2);
+                    offer(x, y, val1, val2);
                 }
             }
         }
-        return allPossibleMove;
-    }
-
-
-    public static int getPositionValue(Point pos, boolean RED) {
-        if (RED) {
-            return BishopTable[9 - pos.x][8 - pos.y];
-        }
-        return BishopTable[pos.x][pos.y];
     }
 }

@@ -2,8 +2,6 @@ package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 
-import java.util.ArrayList;
-
 public class CRook extends Piece {
 
     static int[][] RookTable = {
@@ -23,9 +21,12 @@ public class CRook extends Piece {
         super(board, currMove);
     }
 
+    CRook(Board board) {
+        super(board);
+    }
+
     @Override
-    public ArrayList<State> findAllPossibleMoves() {
-        allPossibleMove = new ArrayList<>();
+    void generate() {
         int x = CurrMove.x;
         int y = CurrMove.y;
         for (int i = y + 1; i <= 8; i++) {
@@ -48,27 +49,14 @@ public class CRook extends Piece {
                 break;
             }
         }
-        return allPossibleMove;
     }
 
     boolean getMoveRook(int x, int y) {
         byte val1 = board.cell[CurrMove.x][CurrMove.y];
         byte val2 = board.cell[x][y];
         if (val2 == 0 || ((RED && val2 >= 8 && val2 <= 14) || (!RED && val2 > 14))) {
-            doMove(x, y);
-            if (board.kingSafe(RED)) {
-                allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
-            }
-            reMove(x, y, val2);
+            offer(x, y, val1, val2);
         }
         return val2 != 0;
-    }
-
-
-    public static int getPositionValue(Point pos, boolean RED) {
-        if (RED) {
-            return RookTable[9 - pos.x][8 - pos.y];
-        }
-        return RookTable[pos.x][pos.y];
     }
 }

@@ -2,8 +2,6 @@ package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 
-import java.util.ArrayList;
-
 public class CCannon extends Piece {
 
     static int[][] CannonTable = {
@@ -23,9 +21,12 @@ public class CCannon extends Piece {
         super(board, currMove);
     }
 
+    CCannon(Board board) {
+        super(board);
+    }
+
     @Override
-    public ArrayList<State> findAllPossibleMoves() {
-        allPossibleMove = new ArrayList<>();
+    void generate() {
         int x = CurrMove.x;
         int y = CurrMove.y;
         for (int i = y + 1; i <= 8; i++) {
@@ -48,7 +49,6 @@ public class CCannon extends Piece {
                 break;
             }
         }
-        return allPossibleMove;
     }
 
     boolean getCannonMove1(int x, int y) {
@@ -104,18 +104,6 @@ public class CCannon extends Piece {
     }
 
     void getCannonMove3(int x, int y, byte val1, byte val2) {
-        doMove(x, y);
-        if (board.kingSafe(RED)) {
-            allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
-        }
-        reMove(x, y, val2);
-    }
-
-
-    public static int getPositionValue(Point pos, boolean RED) {
-        if (RED) {
-            return CannonTable[9 - pos.x][8 - pos.y];
-        }
-        return CannonTable[pos.x][pos.y];
+        offer(x, y, val1, val2);
     }
 }

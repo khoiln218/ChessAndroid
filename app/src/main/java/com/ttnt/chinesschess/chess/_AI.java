@@ -4,7 +4,6 @@ import android.graphics.Point;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 
 /**
@@ -26,16 +25,23 @@ public class _AI {
     /** Slack allowed on top of a capture before writing it off, on the scale {@link #eval} uses. */
     private final static int DELTA = 25;
     /**
-     * How much an extra ply costs, measured from the opening position: depth 3 finishes in 0.29s,
-     * depth 4 in 3.9s, depth 5 in 28s - about fourteen times the previous ply each time, which is
-     * also roughly a dozen times everything spent up to that point.
+     * How much an extra ply costs, measured on ART from the opening position - the widest the
+     * board ever is: depth 6 finishes in 0.08s, depth 7 in 0.5s, depth 8 in 2.4s. That is about
+     * five or six times the previous ply each time, and since the last ply dominates everything
+     * before it, about the same multiple of the whole search so far. Past the opening the same
+     * plies cost 0.05s, 0.09s and 0.2s, so the opening is the case the budget has to survive.
+     * Those figures come from an emulator on desktop silicon; a real phone is some small
+     * multiple slower.
      *
-     * <p>That ratio is what separates the levels. A single shared budget makes every level stop
-     * at the same ply, because the reachable depth is decided by the clock and not by the level;
-     * so each level gets four times the time of the one below it, which buys it about one ply.
+     * <p>Each level gets four times the time of the one below it, which is roughly what one
+     * more ply costs. The budget is a ceiling rather than a target, though: at the depths the
+     * three levels ask for, the search finishes well inside it and stops at {@link #maxDepth}.
+     * So what separates the levels is the depth, and the clock only takes the decision back on
+     * a position, or a device, slow enough to need it - which is what {@link #BUDGET_CAP} is
+     * sized for.
      */
     private final static long BUDGET_STEP = 375L;
-    private final static long BUDGET_CAP = 15000L;
+    private final static long BUDGET_CAP = 60000L;
 
     /** Scores this far from {@link #MATE} are mate scores, and are stored relative to the root. */
     private final static int MATE_BOUND = MATE - 1000;
@@ -65,6 +71,35 @@ public class _AI {
     private final long[] path = new long[MAX_PLY + 8];
     private long[] played = new long[0];
 
+    /**
+     * One move list per level of the stack, reused. Every node needs somewhere to put its moves,
+     * but only one node per level is ever being searched at a time, so the lists - and the arrays
+     * behind them, once they have grown to fit - can be handed out again instead of rebuilt. This
+     * was the search's largest single source of garbage.
+     */
+    @SuppressWarnings("unchecked")
+    private final ArrayList<State>[] lists = new ArrayList[MAX_PLY + 8];
+
+    private ArrayList<State> listAt(int ply) {
+        if (ply < 0 || ply >= lists.length) return new ArrayList<>();
+        ArrayList<State> list = lists[ply];
+        if (list == null) {
+            list = new ArrayList<>(48);
+            lists[ply] = list;
+        } else {
+            list.clear();
+        }
+        return list;
+    }
+
+    /**
+     * How many chariots, cannons and horses each side still has, kept in step by {@link #doMove}
+     * and {@link #reMove}. Only the null move below reads it, and it needs the answer at nearly
+     * every node, which is too often to count the board out each time.
+     */
+    private int heavyRed;
+    private int heavyBlack;
+
     /** Zobrist key of {@link #clone}, kept in step by {@link #doMove} and {@link #reMove}. */
     private long hash;
     private final long[] ttKey = new long[TT_SIZE];
@@ -82,6 +117,12 @@ public class _AI {
     /** How often a quiet move from one square to another has caused a cutoff, anywhere. */
     private final int[][] history = new int[90][90];
 
+    /**
+     * The lobby's three levels reach here as 2, 3 and 4 - easy, hard and very hard - and become
+     * searches four, six and eight plies deep. Two plies a level rather than one, because a
+     * single ply changes how the machine plays less than it sounds like it should: one side's
+     * reply is only half an exchange, and it takes the pair to see the exchange through.
+     */
     public _AI(Board b, int level) {
         this.board = b;
         int lv = Math.max(1, level);
@@ -138,15 +179,70 @@ public class _AI {
     }
 
     /**
-     * Two things the opening tables cannot say on their own. Both are small - single digits on a
-     * scale where a rook is 90 - so they nudge between otherwise equal moves rather than steering
-     * the search.
+     * What every piece is worth on every square, flattened once at class load: the value, the
+     * square and the side are all folded into one lookup, already signed the way {@link #eval}
+     * counts it - red positive. Reading a leaf's score is then one array access per occupied
+     * square, where before it was a switch, a table lookup and a {@link Point} allocated and
+     * thrown away for each of the ninety squares.
      */
-    int bonus(boolean side) {
-        int[] mine = count(side);
-        int[] theirs = count(!side);
+    private static final int[][] PIECE_SQUARE = new int[22][Board.ROW * Board.COL];
 
+    static {
+        table((byte) 8, (byte) 15, CKing.KingTable);
+        table((byte) 9, (byte) 16, CBishop.BishopTable);
+        table((byte) 10, (byte) 17, CElephant.ElephantTable);
+        table((byte) 11, (byte) 18, CKnight.KnightTable);
+        table((byte) 12, (byte) 19, CRook.RookTable);
+        table((byte) 13, (byte) 20, CCannon.CannonTable);
+        table((byte) 14, (byte) 21, CPawn.PawnTable);
+    }
+
+    /**
+     * Fills in one kind of piece for both sides. The tables are written from black's side of the
+     * board, so red reads the same table upside down and mirrored, and counts the other way.
+     */
+    private static void table(byte black, byte red, int[][] values) {
+        for (int x = 0; x < Board.ROW; x++) {
+            for (int y = 0; y < Board.COL; y++) {
+                int square = x * Board.COL + y;
+                PIECE_SQUARE[black][square] = -values[x][y];
+                PIECE_SQUARE[red][square] = values[Board.ROW - 1 - x][Board.COL - 1 - y];
+            }
+        }
+    }
+
+    /** Live pieces of each side, indexed advisor, elephant, knight, rook, cannon, pawn. */
+    private final int[] countRed = new int[6];
+    private final int[] countBlack = new int[6];
+
+    /**
+     * The score of the position on {@link #clone}, from {@code side}'s point of view. One pass
+     * over the board does both halves of it: the piece-square total, and the census the two
+     * bonuses below need. It used to be four passes - one to score, two to count, and the
+     * development check - and this is the single most-run routine in the search, once at every
+     * leaf the quiescence search settles on.
+     */
+    int eval(boolean side) {
+        java.util.Arrays.fill(countRed, 0);
+        java.util.Arrays.fill(countBlack, 0);
         int s = 0;
+        byte[][] cell = clone.cell;
+        for (int x = 0; x < Board.ROW; x++) {
+            byte[] row = cell[x];
+            int square = x * Board.COL;
+            for (int y = 0; y < Board.COL; y++) {
+                byte v = row[y];
+                if (v == 0) continue;
+                s += PIECE_SQUARE[v][square + y];
+                // Kings are not counted: neither bonus asks after a piece that cannot be lost.
+                if (v >= 9 && v <= 14) countBlack[v - 9]++;
+                else if (v >= 16) countRed[v - 16]++;
+            }
+        }
+
+        if (!side) s = -s;
+        int[] mine = side ? countRed : countBlack;
+        int[] theirs = side ? countBlack : countRed;
         // A side short of advisors or elephants is far more exposed to cannons and knights, so
         // those pieces are worth holding on to when the opponent has lost its guards.
         s += attackBonus(mine, theirs);
@@ -155,26 +251,6 @@ public class _AI {
         s += development(side);
         s -= development(!side);
         return s;
-    }
-
-    /** Live pieces of one side, indexed advisor, elephant, knight, rook, cannon, pawn. */
-    private int[] count(boolean red) {
-        int[] n = new int[6];
-        for (int x = 0; x < Board.ROW; x++) {
-            for (int y = 0; y < Board.COL; y++) {
-                byte v = clone.cell[x][y];
-                if (v == 0 || (v > 14) != red) continue;
-                switch (v) {
-                    case 9, 16 -> n[0]++;
-                    case 10, 17 -> n[1]++;
-                    case 11, 18 -> n[2]++;
-                    case 12, 19 -> n[3]++;
-                    case 13, 20 -> n[4]++;
-                    case 14, 21 -> n[5]++;
-                }
-            }
-        }
-        return n;
     }
 
     /** What {@code mine}'s attackers gain from the guards {@code theirs} has already lost. */
@@ -196,73 +272,29 @@ public class _AI {
         return s;
     }
 
-    int eval(boolean side) {
-        int s = 0;
-        for (int x = 0; x <= 9; x++) {
-            for (int y = 0; y <= 8; y++) {
-                byte value = clone.getValue(x, y);
-                switch (value) {
-                    case 8:
-                        s -= CKing.getPositionValue(new Point(x, y), false);
-                        break;
-                    case 15:
-                        s += CKing.getPositionValue(new Point(x, y), true);
-                        break;
-                    case 9:
-                        s -= CBishop.getPositionValue(new Point(x, y), false);
-                        break;
-                    case 16:
-                        s += CBishop.getPositionValue(new Point(x, y), true);
-                        break;
-                    case 10:
-                        s -= CElephant.getPositionValue(new Point(x, y), false);
-                        break;
-                    case 17:
-                        s += CElephant.getPositionValue(new Point(x, y), true);
-                        break;
-                    case 11:
-                        s -= CKnight.getPositionValue(new Point(x, y), false);
-                        break;
-                    case 18:
-                        s += CKnight.getPositionValue(new Point(x, y), true);
-                        break;
-                    case 12:
-                        s -= CRook.getPositionValue(new Point(x, y), false);
-                        break;
-                    case 19:
-                        s += CRook.getPositionValue(new Point(x, y), true);
-                        break;
-                    case 13:
-                        s -= CCannon.getPositionValue(new Point(x, y), false);
-                        break;
-                    case 20:
-                        s += CCannon.getPositionValue(new Point(x, y), true);
-                        break;
-                    case 14:
-                        s -= CPawn.getPositionValue(new Point(x, y), false);
-                        break;
-                    case 21:
-                        s += CPawn.getPositionValue(new Point(x, y), true);
-                        break;
-                }
-            }
-        }
-        if (!side) {
-            s = -s;
-        }
-        return s + bonus(side);
-    }
-
     void doMove(State state) {
         clone.cell[state.curr.x][state.curr.y] = state.value1;
         clone.cell[state.prev.x][state.prev.y] = 0;
+        if (isHeavy(state.value2)) {
+            if (state.value2 > 14) heavyRed--;
+            else heavyBlack--;
+        }
         toggle(state);
     }
 
     void reMove(State state) {
         clone.cell[state.curr.x][state.curr.y] = state.value2;
         clone.cell[state.prev.x][state.prev.y] = state.value1;
+        if (isHeavy(state.value2)) {
+            if (state.value2 > 14) heavyRed++;
+            else heavyBlack++;
+        }
         toggle(state);
+    }
+
+    /** Chariot, horse or cannon - the pieces that can still create a threat out of nothing. */
+    private static boolean isHeavy(byte value) {
+        return (value >= 11 && value <= 13) || (value >= 18 && value <= 20);
     }
 
     /** Xor is its own inverse, so making and unmaking a move run the same four operations. */
@@ -280,28 +312,54 @@ public class _AI {
                 | (move.curr.x * Board.COL + move.curr.y);
     }
 
+    /** Move scores, one array per level of the stack, grown to fit and reused like the lists. */
+    private final int[][] scores = new int[MAX_PLY + 8][];
+
     /**
-     * Best move first, then winning captures, then the quiet moves that have refuted something
-     * before. The list is short enough that an insertion sort beats allocating for a comparator.
+     * Scores every move once: best move first, then winning captures, then the quiet moves that
+     * have refuted something before. The list is left in the order it was generated - what comes
+     * next is picked out of it one at a time by {@link #promote}.
      */
-    private void order(ArrayList<State> moves, int wanted, int ply) {
+    private int[] scoreMoves(ArrayList<State> moves, int wanted, int ply) {
         int n = moves.size();
-        int[] score = new int[n];
+        int[] score;
+        if (ply < 0 || ply >= scores.length) {
+            score = new int[n];
+        } else {
+            score = scores[ply];
+            if (score == null || score.length < n) {
+                score = new int[Math.max(n, 48)];
+                scores[ply] = score;
+            }
+        }
         for (int i = 0; i < n; i++) {
             score[i] = moveScore(moves.get(i), wanted, ply);
         }
-        for (int i = 1; i < n; i++) {
-            State move = moves.get(i);
-            int sc = score[i];
-            int j = i - 1;
-            while (j >= 0 && score[j] < sc) {
-                moves.set(j + 1, moves.get(j));
-                score[j + 1] = score[j];
-                j--;
-            }
-            moves.set(j + 1, move);
-            score[j + 1] = sc;
+        return score;
+    }
+
+    /**
+     * Brings the best of the moves not yet searched into position {@code i}, leaving the rest in
+     * the order they were generated. Sorting the whole list up front costs the same whether the
+     * node searches every move or cuts on the first one - and a well-ordered search cuts on the
+     * first one most of the time, so all but a move or two of that sorting was thrown away.
+     */
+    private static void promote(ArrayList<State> moves, int[] score, int i) {
+        int n = moves.size();
+        int bestAt = i;
+        // Strictly greater, so equal scores keep the order they arrived in.
+        for (int j = i + 1; j < n; j++) {
+            if (score[j] > score[bestAt]) bestAt = j;
         }
+        if (bestAt == i) return;
+        State move = moves.get(bestAt);
+        int sc = score[bestAt];
+        for (int j = bestAt; j > i; j--) {
+            moves.set(j, moves.get(j - 1));
+            score[j] = score[j - 1];
+        }
+        moves.set(i, move);
+        score[i] = sc;
     }
 
     private int moveScore(State move, int wanted, int ply) {
@@ -370,17 +428,48 @@ public class _AI {
             }
         }
 
-        ArrayList<State> moves = clone.allMoves(!side);
-        // No move at all: mated, or stalemated, which xiangqi also scores as a loss.
-        if (moves.isEmpty()) return -(MATE - ply);
+        // Null move: hand the turn straight back and see whether the position is still good
+        // enough to cut. If doing nothing already beats beta, doing something will too, and the
+        // whole subtree can go unsearched - which is where most of the saving at the deeper
+        // levels comes from.
+        //
+        // Three things have to hold first. A side in check has no turn to give away. A side down
+        // to its general, guards and soldiers may be in zugzwang, where every move it has makes
+        // its position worse and passing would be better than anything legal - the one case
+        // where the argument above is false. And the test only pays for itself on a node deep
+        // enough to have a real subtree under it.
+        if (depth >= 3 && beta - alpha == 1 && (side ? heavyRed : heavyBlack) > 0
+                && clone.kingSafe(side)) {
+            int reduction = depth > 6 ? 3 : 2;
+            hash ^= Board.ZOBRIST_SIDE;
+            int value = -alphaBeta(depth - 1 - reduction, !side, -beta, -beta + 1, ply + 1);
+            hash ^= Board.ZOBRIST_SIDE;
+            // A mate found beyond a move nobody may play is not a mate. Cutting on the bound is
+            // sound - claiming the mate score is not.
+            if (value >= beta && !aborted) return value >= MATE_BOUND ? beta : value;
+        }
 
-        order(moves, wanted, ply);
+        // Pseudo-legal: whether a move leaves its own general in check is settled below, on the
+        // moves that actually get played. At a node that cuts after one or two of them, the rest
+        // never need the test - and that test was the single most expensive thing in the search.
+        ArrayList<State> moves = listAt(ply);
+        clone.collect(side, false, false, moves);
+
+        int[] score = scoreMoves(moves, wanted, ply);
         int alphaOrig = alpha;
         int best = -INF;
         State bestHere = null;
         boolean first = true;
-        for (State m : moves) {
+        boolean any = false;
+        for (int i = 0; i < moves.size(); i++) {
+            promote(moves, score, i);
+            State m = moves.get(i);
             doMove(m);
+            if (!clone.kingSafe(side)) {
+                reMove(m);
+                continue;
+            }
+            any = true;
             int value;
             if (first) {
                 value = -alphaBeta(depth - 1, !side, -beta, -alpha, ply + 1);
@@ -406,6 +495,8 @@ public class _AI {
                 break;
             }
         }
+        // Not one move was legal: mated, or stalemated, which xiangqi also scores as a loss.
+        if (!any) return -(MATE - ply);
 
         if (!aborted) {
             byte flag = best <= alphaOrig ? TT_UPPER : (best >= beta ? TT_LOWER : TT_EXACT);
@@ -434,13 +525,16 @@ public class _AI {
         if (stand > alpha) alpha = stand;
         if (ply >= maxDepth + QUIET_PLIES) return stand;
 
-        ArrayList<State> moves = clone.allMoves(!side);
-        if (moves.isEmpty()) return -(MATE - ply);
-        Collections.sort(moves, BY_CAPTURE);
+        if (!clone.hasLegalMove(side)) return -(MATE - ply);
+        // Only the captures are ever played here, and at a leaf they are a handful of the forty
+        // or so moves a position has - so listing the rest, and proving each of them legal, was
+        // most of the work done at the most-visited nodes in the search.
+        ArrayList<State> moves = listAt(ply);
+        clone.collect(side, true, true, moves);
+        moves.sort(BY_CAPTURE);
 
         int best = stand;
         for (State m : moves) {
-            if (m.value2 == 0) continue;   // quiet move: nothing left to resolve here
             // Even winning this piece outright would not reach alpha, and neither will anything
             // behind it, since the captures are ordered by what they win.
             if (stand + evalValue(m.value2) + DELTA < alpha) break;
@@ -476,6 +570,16 @@ public class _AI {
         nodes = 0;
         deadline = System.currentTimeMillis() + budgetMs;
         hash = zobristOf(RED);
+        heavyRed = 0;
+        heavyBlack = 0;
+        for (int x = 0; x < Board.ROW; x++) {
+            for (int y = 0; y < Board.COL; y++) {
+                byte v = clone.cell[x][y];
+                if (!isHeavy(v)) continue;
+                if (v > 14) heavyRed++;
+                else heavyBlack++;
+            }
+        }
         path[0] = hash;
         played = new long[Math.max(0, board.history.size() - 1)];
         for (int i = 0; i < played.length; i++) {
@@ -488,9 +592,10 @@ public class _AI {
         }
         long started = System.currentTimeMillis();
 
-        ArrayList<State> rootMoves = clone.allMoves(!RED);
+        ArrayList<State> rootMoves = new ArrayList<>();
+        clone.collect(RED, false, true, rootMoves);
         if (rootMoves.isEmpty()) return null;
-        Collections.sort(rootMoves, BY_CAPTURE);
+        rootMoves.sort(BY_CAPTURE);
         // Something legal to play even if the very first iteration does not finish.
         State bestMove = rootMoves.get(0);
 
@@ -511,9 +616,10 @@ public class _AI {
     }
 
     /**
-     * Whether there is time for another ply. The next one costs roughly a dozen times everything
-     * spent so far, so once an eighth of the budget is gone it cannot finish, and starting it
-     * would only burn the rest of the clock on a result the root throws away.
+     * Whether there is time for another ply. The next one costs about five or six times
+     * everything spent so far, so this only lets one start while under an eighth of the budget
+     * has gone - a deliberate margin, because a ply begun and abandoned spends the rest of the
+     * clock on a result the root throws away, and finishing one ply lower is the better trade.
      */
     private boolean worthDeepening(long started) {
         return (System.currentTimeMillis() - started) * 8 < budgetMs;

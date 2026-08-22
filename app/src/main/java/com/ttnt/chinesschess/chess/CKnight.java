@@ -2,8 +2,6 @@ package com.ttnt.chinesschess.chess;
 
 import android.graphics.Point;
 
-import java.util.ArrayList;
-
 public class CKnight extends Piece {
 
     static int[][] KnightTable = {
@@ -23,9 +21,12 @@ public class CKnight extends Piece {
         super(board, currMove);
     }
 
+    CKnight(Board board) {
+        super(board);
+    }
+
     @Override
-    public ArrayList<State> findAllPossibleMoves() {
-        allPossibleMove = new ArrayList<>();
+    void generate() {
         int[] dx = {1, 1, 2, 2, -1, -1, -2, -2};
         int[] dy = {2, -2, 1, -1, 2, -2, 1, -1};
         for (int i = 0; i < dx.length; i++) {
@@ -34,30 +35,17 @@ public class CKnight extends Piece {
             if (x >= 0 && x <= 9 && y >= 0 && y <= 8) {
                 byte val1 = board.cell[CurrMove.x][CurrMove.y];
                 byte val2 = board.cell[x][y];
-                if ((val2 == 0 || ((RED && val2 >= 8 && val2 <= 14) || (!RED && val2 > 14))) && checkProject(new Point(x, y))) {
-                    doMove(x, y);
-                    if (board.kingSafe(RED)) {
-                        allPossibleMove.add(new State(CurrMove, new Point(x, y), val1, val2));
-                    }
-                    reMove(x, y, val2);
+                if ((val2 == 0 || ((RED && val2 >= 8 && val2 <= 14) || (!RED && val2 > 14))) && checkProject(x, y)) {
+                    offer(x, y, val1, val2);
                 }
             }
         }
-        return allPossibleMove;
-    }
-
-
-    public static int getPositionValue(Point pos, boolean RED) {
-        if (RED) {
-            return KnightTable[9 - pos.x][8 - pos.y];
-        }
-        return KnightTable[pos.x][pos.y];
     }
 
     /** Whether a horse standing here could reach {@code target}: its leg must be clear. */
-    private boolean checkProject(Point target) {
-        int dong = target.x - CurrMove.x;
-        int cot = target.y - CurrMove.y;
+    private boolean checkProject(int x, int y) {
+        int dong = x - CurrMove.x;
+        int cot = y - CurrMove.y;
         int d = Math.abs(dong);
         int c = Math.abs(cot);
         if ((d == 1 && c == 2) || (d == 2 && c == 1)) {

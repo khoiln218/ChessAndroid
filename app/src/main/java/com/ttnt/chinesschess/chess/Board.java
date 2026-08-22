@@ -97,6 +97,12 @@ public final class Board {
         restartHistory();
     }
 
+    /**
+     * {@link #movers} is deliberately left out: each of those pieces holds the board it was made
+     * for, so handing them to a copy would have them generating moves against the original. The
+     * copy makes its own on first use.
+     */
+    @SuppressWarnings("CopyConstructorMissesField")
     public Board(Board b) {
         listUndo = new ArrayList<>();
         setBoard(b.cell);
@@ -303,54 +309,82 @@ public final class Board {
     }
 
     public ArrayList<State> allMove(Point pos) {
-        ArrayList<State> arrMoves = new ArrayList<>();
-        byte val = getValue(pos.x, pos.y);
-        switch (val) {
-            case 8:
-            case 15:
-                CKing king = new CKing(this, pos);
-                arrMoves.addAll(king.findAllPossibleMoves());
-                break;
-            case 9:
-            case 16:
-                CBishop bishop = new CBishop(this, pos);
-                arrMoves.addAll(bishop.findAllPossibleMoves());
-                break;
-            case 10:
-            case 17:
-                CElephant elephant = new CElephant(this, pos);
-                arrMoves.addAll(elephant.findAllPossibleMoves());
-                break;
-            case 11:
-            case 18:
-                CKnight knight = new CKnight(this, pos);
-                arrMoves.addAll(knight.findAllPossibleMoves());
-                break;
-            case 12:
-            case 19:
-                CRook rook = new CRook(this, pos);
-                arrMoves.addAll(rook.findAllPossibleMoves());
-                break;
-            case 13:
-            case 20:
-                CCannon cannon = new CCannon(this, pos);
-                arrMoves.addAll(cannon.findAllPossibleMoves());
-                break;
-            case 14:
-            case 21:
-                CPawn pawn = new CPawn(this, pos);
-                arrMoves.addAll(pawn.findAllPossibleMoves());
-                break;
-        }
-        return arrMoves;
+        Piece piece = getPiece(pos.x, pos.y);
+        return piece == null ? new ArrayList<>() : piece.findAllPossibleMoves();
     }
 
-    public ArrayList<State> allMoves(boolean _RED) {
-        ArrayList<Point> allPiece = findPieces(_RED);
-        ArrayList<State> arrMoves = new ArrayList<>();
-        for (int i = 1; i < allPiece.size(); i++) {
-            arrMoves.addAll(allMove(allPiece.get(i)));
+    /**
+     * One piece object per kind, walked around the board by {@link #collect} instead of a fresh
+     * one built for every square of every position the search looks at. Made on first use, so a
+     * board the search never touches never pays for them.
+     */
+    private Piece[] movers;
+
+    private Piece mover(byte value) {
+        if (movers == null) {
+            movers = new Piece[]{new CKing(this), new CBishop(this), new CElephant(this),
+                    new CKnight(this), new CRook(this), new CCannon(this), new CPawn(this)};
         }
+        return movers[kind(value)];
+    }
+
+    /**
+     * Appends every move {@code red} has to {@code out}, in the order the board is read - down
+     * the rows, left to right. The search leans on that order being fixed: it picks moves out of
+     * the list by score, and moves of equal score are tried in the order they arrived here.
+     *
+     * @param capturesOnly leave out the quiet moves, for the quiescence search
+     * @param legalOnly    keep only moves that leave one's own general safe. Off, the list is
+     *                     pseudo-legal and the caller must retest each move it actually plays.
+     */
+    void collect(boolean red, boolean capturesOnly, boolean legalOnly, ArrayList<State> out) {
+        for (int x = 0; x < ROW; x++) {
+            byte[] row = cell[x];
+            for (int y = 0; y < COL; y++) {
+                byte value = row[y];
+                if (value < 8 || (value > 14) != red) continue;
+                Piece piece = mover(value);
+                piece.allPossibleMove = out;
+                piece.capturesOnly = capturesOnly;
+                piece.legalOnly = legalOnly;
+                piece.at(x, y);
+                piece.generate();
+            }
+        }
+    }
+
+    /** Somewhere for {@link #hasLegalMove} to put the one move it is looking for. */
+    private final ArrayList<State> firstFound = new ArrayList<>(1);
+
+    /**
+     * Whether {@code red} has any legal move at all - the mate and stalemate test, both of which
+     * xiangqi scores as a loss. It stops at the first one it finds, which is almost always on
+     * the first piece it looks at, so it costs a fraction of listing every move to count them.
+     */
+    boolean hasLegalMove(boolean red) {
+        ArrayList<State> one = firstFound;
+        one.clear();
+        for (int x = 0; x < ROW; x++) {
+            byte[] row = cell[x];
+            for (int y = 0; y < COL; y++) {
+                byte value = row[y];
+                if (value < 8 || (value > 14) != red) continue;
+                Piece piece = mover(value);
+                piece.allPossibleMove = one;
+                piece.capturesOnly = false;
+                piece.legalOnly = true;
+                piece.at(x, y);
+                piece.generate();
+                if (!one.isEmpty()) return true;
+            }
+        }
+        return false;
+    }
+
+    /** Every legal move of the side {@code _RED} is <em>not</em> playing. */
+    public ArrayList<State> allMoves(boolean _RED) {
+        ArrayList<State> arrMoves = new ArrayList<>();
+        collect(!_RED, false, true, arrMoves);
         return arrMoves;
     }
 

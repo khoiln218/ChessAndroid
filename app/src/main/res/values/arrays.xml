@@ -9,6 +9,7 @@
     <array name="level">
         <item>@string/level_1_label</item>
         <item>@string/level_2_label</item>
+        <item>@string/level_3_label</item>
     </array>
 
 </resources>

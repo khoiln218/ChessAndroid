@@ -4,53 +4,78 @@ import android.graphics.Point;
 
 import java.util.ArrayList;
 
+/**
+ * One kind of piece, standing on one square, able to list where it may go. The board makes one
+ * of these per kind and walks it around rather than making a fresh one per square: at the depths
+ * the search reaches, a piece object per square per position is millions of objects a second, and
+ * on a phone that cost lands on the collector rather than on the search.
+ *
+ * <p>Every kind funnels its moves through {@link #offer}, which is where the two things the
+ * search wants to vary live - whether quiet moves are wanted at all, and whether a move is tested
+ * for leaving one's own general in check before it is kept.
+ */
 public abstract class Piece {
 
-    Point CurrMove;
+    final Point CurrMove;
     Board board;
-    String name;
     public boolean RED;
     ArrayList<State> allPossibleMove;
 
+    /** Skip quiet moves. The quiescence search resolves captures and wants nothing else. */
+    boolean capturesOnly;
+    /**
+     * Whether a move is only kept once it is shown to leave one's own general safe. The search
+     * turns this off and repeats the test on the moves it actually plays: at a node that cuts
+     * after one or two moves, the rest are never played and never need to be tested at all.
+     */
+    boolean legalOnly = true;
+
     public Piece(Board board, Point currMove) {
         this.board = board;
-        this.CurrMove = currMove;
-        byte val = board.cell[currMove.x][currMove.y];
-        switch (val) {
-            case 8:
-            case 15:
-                name = "KING";
-                break;
-            case 9:
-            case 16:
-                name = "BISHOP";
-                break;
-            case 10:
-            case 17:
-                name = "ELEPHANT";
-                break;
-            case 11:
-            case 18:
-                name = "KNIGHT";
-                break;
-            case 12:
-            case 19:
-                name = "ROOK";
-                break;
-            case 13:
-            case 20:
-                name = "CANNON";
-                break;
-            case 14:
-            case 21:
-                name = "PAWN";
-                break;
-        }
-        this.RED = val > 14;
+        this.CurrMove = new Point(currMove);
+        this.RED = board.cell[currMove.x][currMove.y] > 14;
         allPossibleMove = null;
     }
 
-    abstract ArrayList<State> findAllPossibleMoves();
+    /** An instance with no square yet, to be pointed at one by {@link #at}. */
+    Piece(Board board) {
+        this.board = board;
+        this.CurrMove = new Point();
+    }
+
+    /** Re-points this piece at another square, so one instance serves the whole board. */
+    void at(int x, int y) {
+        CurrMove.x = x;
+        CurrMove.y = y;
+        RED = board.cell[x][y] > 14;
+    }
+
+    /** Appends this piece's moves to {@link #allPossibleMove}, under the flags as they stand. */
+    abstract void generate();
+
+    public ArrayList<State> findAllPossibleMoves() {
+        allPossibleMove = new ArrayList<>();
+        capturesOnly = false;
+        legalOnly = true;
+        generate();
+        return allPossibleMove;
+    }
+
+    /**
+     * Keeps one move the piece's own rules have already allowed. {@code val2} is what stands on
+     * the target square, read before the move is tried, so the state built here does not depend
+     * on the board being left in any particular way.
+     */
+    void offer(int x, int y, byte val1, byte val2) {
+        if (capturesOnly && val2 == 0) return;
+        if (legalOnly) {
+            doMove(x, y);
+            boolean safe = board.kingSafe(RED);
+            reMove(x, y, val2);
+            if (!safe) return;
+        }
+        allPossibleMove.add(new State(CurrMove, x, y, val1, val2));
+    }
 
     public boolean checkMove(int x, int y) {
         try {
