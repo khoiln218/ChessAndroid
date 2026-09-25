@@ -99,7 +99,7 @@
                 android:textSize="13sp" />
         </LinearLayout>
 
-        <com.ttnt.chinesschess.game.TurnTimerView
+        <com.ttnt.chinesechess.game.TurnTimerView
             android:id="@+id/computer_timer"
             android:layout_width="52dp"
             android:layout_height="52dp" />
@@ -205,7 +205,7 @@
             android:src="@drawable/ic_more_vert"
             app:tint="@color/gold" />
 
-        <com.ttnt.chinesschess.game.TurnTimerView
+        <com.ttnt.chinesechess.game.TurnTimerView
             android:id="@+id/player_timer"
             android:layout_width="52dp"
             android:layout_height="52dp" />

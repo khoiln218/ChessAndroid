@@ -1,4 +1,4 @@
-package com.ttnt.chinesschess;
+package com.ttnt.chinesechess;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,8 +8,8 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.ttnt.chinesschess.graph.BoardTheme;
-import com.ttnt.chinesschess.graph.PieceArt;
+import com.ttnt.chinesechess.graph.BoardTheme;
+import com.ttnt.chinesechess.graph.PieceArt;
 
 public class Menu extends AppCompatActivity implements OnClickListener {
 

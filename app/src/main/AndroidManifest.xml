@@ -13,7 +13,7 @@
             android:value="@string/admob_app_id" />
 
         <activity
-            android:name="com.ttnt.chinesschess.Menu"
+            android:name="com.ttnt.chinesechess.Menu"
             android:exported="true"
             android:screenOrientation="portrait"
             tools:ignore="DiscouragedApi,LockedOrientationActivity">
@@ -24,12 +24,12 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.ttnt.chinesschess.Game"
+            android:name="com.ttnt.chinesechess.Game"
             android:exported="false"
             android:screenOrientation="portrait"
             tools:ignore="DiscouragedApi,LockedOrientationActivity" />
         <activity
-            android:name="com.ttnt.chinesschess.About"
+            android:name="com.ttnt.chinesechess.About"
             android:exported="false"
             android:screenOrientation="portrait"
             tools:ignore="DiscouragedApi,LockedOrientationActivity" />

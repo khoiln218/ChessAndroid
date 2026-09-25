@@ -1,4 +1,4 @@
-package com.ttnt.chinesschess.game;
+package com.ttnt.chinesechess.game;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -13,12 +13,12 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
-import com.ttnt.chinesschess.chess.Board;
-import com.ttnt.chinesschess.chess.State;
-import com.ttnt.chinesschess.Settings;
-import com.ttnt.chinesschess.chess.AI;
-import com.ttnt.chinesschess.graph.BoardTheme;
-import com.ttnt.chinesschess.graph.Graphics;
+import com.ttnt.chinesechess.chess.Board;
+import com.ttnt.chinesechess.chess.State;
+import com.ttnt.chinesechess.Settings;
+import com.ttnt.chinesechess.chess.AI;
+import com.ttnt.chinesechess.graph.BoardTheme;
+import com.ttnt.chinesechess.graph.Graphics;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

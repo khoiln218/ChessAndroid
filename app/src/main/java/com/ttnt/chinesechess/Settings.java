@@ -1,9 +1,9 @@
-package com.ttnt.chinesschess;
+package com.ttnt.chinesechess;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 
-import com.ttnt.chinesschess.graph.BoardTheme;
+import com.ttnt.chinesechess.graph.BoardTheme;
 
 /**
  * Everything the app remembers between sessions, in one place: how strong the machine plays,

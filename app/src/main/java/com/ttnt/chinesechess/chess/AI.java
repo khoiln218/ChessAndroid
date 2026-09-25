@@ -1,4 +1,4 @@
-package com.ttnt.chinesschess.chess;
+package com.ttnt.chinesechess.chess;
 
 import android.graphics.Point;
 import android.util.Log;

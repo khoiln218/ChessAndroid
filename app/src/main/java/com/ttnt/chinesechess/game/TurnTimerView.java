@@ -1,4 +1,4 @@
-package com.ttnt.chinesschess.game;
+package com.ttnt.chinesechess.game;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import com.ttnt.chinesschess.R;
+import com.ttnt.chinesechess.R;
 
 /**
  * The circular turn clock drawn on each side's panel: a ring that empties as the side's three

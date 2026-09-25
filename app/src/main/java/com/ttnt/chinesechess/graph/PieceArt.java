@@ -1,4 +1,4 @@
-package com.ttnt.chinesschess.graph;
+package com.ttnt.chinesechess.graph;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -15,7 +15,7 @@ import android.graphics.Shader;
 
 import androidx.core.graphics.PathParser;
 
-import com.ttnt.chinesschess.R;
+import com.ttnt.chinesechess.R;
 
 /**
  * Draws the pieces from the vector set in res/values/piece_paths.xml.

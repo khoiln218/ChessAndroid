@@ -1,4 +1,4 @@
-package com.ttnt.chinesschess;
+package com.ttnt.chinesechess;
 
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
@@ -34,12 +34,12 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
-import com.ttnt.chinesschess.chess.Board;
-import com.ttnt.chinesschess.chess.State;
-import com.ttnt.chinesschess.game.ChineseChessGame;
-import com.ttnt.chinesschess.game.TurnTimerView;
-import com.ttnt.chinesschess.graph.BoardTheme;
-import com.ttnt.chinesschess.graph.PieceArt;
+import com.ttnt.chinesechess.chess.Board;
+import com.ttnt.chinesechess.chess.State;
+import com.ttnt.chinesechess.game.ChineseChessGame;
+import com.ttnt.chinesechess.game.TurnTimerView;
+import com.ttnt.chinesechess.graph.BoardTheme;
+import com.ttnt.chinesechess.graph.PieceArt;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

@@ -1,8 +1,8 @@
-package com.ttnt.chinesschess.graph;
+package com.ttnt.chinesechess.graph;
 
 import android.content.Context;
 
-import com.ttnt.chinesschess.R;
+import com.ttnt.chinesechess.R;
 
 /**
  * A set the game can be played with: what {@link Graphics} paints the board with, and what

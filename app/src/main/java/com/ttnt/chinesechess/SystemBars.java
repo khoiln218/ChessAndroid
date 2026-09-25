@@ -1,4 +1,4 @@
-package com.ttnt.chinesschess;
+package com.ttnt.chinesechess;
 
 import android.app.Activity;
 import android.view.View;

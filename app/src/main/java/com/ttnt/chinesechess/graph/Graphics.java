@@ -1,4 +1,4 @@
-package com.ttnt.chinesschess.graph;
+package com.ttnt.chinesechess.graph;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -16,8 +16,8 @@ import android.graphics.RectF;
 import android.graphics.Shader;
 import android.graphics.Typeface;
 
-import com.ttnt.chinesschess.R;
-import com.ttnt.chinesschess.chess.State;
+import com.ttnt.chinesechess.R;
+import com.ttnt.chinesechess.chess.State;
 
 import java.util.ArrayList;
 

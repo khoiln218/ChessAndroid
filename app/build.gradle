@@ -14,12 +14,12 @@ if (keystorePropertiesFile.exists()) {
 def signingReady = keystoreProperties.containsKey('storeFile')
 
 android {
-    namespace = 'com.ttnt.chinesschess'
+    namespace = 'com.ttnt.chinesechess'
     //noinspection GradleDependency
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.ttnt.chinesschess"
+        applicationId = "com.ttnt.chinesechess"
         minSdk = 24
         //noinspection OldTargetApi
         targetSdk = 35

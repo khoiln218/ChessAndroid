@@ -1,10 +1,10 @@
-package com.ttnt.chinesschess;
+package com.ttnt.chinesechess;
 
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.ttnt.chinesschess.graph.PieceArt;
+import com.ttnt.chinesechess.graph.PieceArt;
 
 public class About extends AppCompatActivity {
 
