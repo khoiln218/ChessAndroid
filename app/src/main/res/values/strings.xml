@@ -20,6 +20,7 @@
     <string name="algorithm_label">Thuật toán</string>
     <string name="algorithm_title">Chọn thuật toán</string>
     <string name="algorithm_engine">Engine tối ưu</string>
+    <string name="algorithm_minimax">Minimax thuần</string>
     <string name="algorithm_negamax">Negamax thuần</string>
     <string name="algorithm_alpha_beta">Alpha-Beta thuần</string>
 

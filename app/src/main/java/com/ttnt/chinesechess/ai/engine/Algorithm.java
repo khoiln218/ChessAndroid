@@ -15,6 +15,12 @@ public enum Algorithm {
     OPTIMIZED,
 
     /**
+     * Plain minimax: two, three and four plies, like negamax - the same tree, searched with a
+     * MAX and a MIN function instead of one negated one.
+     */
+    MINIMAX,
+
+    /**
      * Plain negamax: two, three and four plies. Four is already some three million positions
      * from the opening - one more would be forty times that.
      */
@@ -31,6 +37,7 @@ public enum Algorithm {
         int lv = Math.max(1, level);
         return switch (this) {
             case OPTIMIZED -> Engine.optimized(board, lv * 2, budget(lv));
+            case MINIMAX -> Engine.minimax(board, lv);
             case NEGAMAX -> Engine.negamax(board, lv);
             case ALPHA_BETA -> Engine.alphaBeta(board, lv + 2);
         };

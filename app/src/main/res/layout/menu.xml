@@ -151,7 +151,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- How the machine searches: the full engine, or one of the two textbook algorithms -->
+        <!-- How the machine searches: the full engine, or one of the three textbook algorithms -->
         <LinearLayout
             android:id="@+id/algorithm_button"
             android:layout_width="match_parent"

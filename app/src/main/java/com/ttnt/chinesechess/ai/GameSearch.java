@@ -9,6 +9,7 @@ public final class GameSearch {
     // chi khac nhau o ham cat tia cut(alpha, beta) duoc truyen vao Problem:
     //   Negamax   : cut = false            (duyet het cay)
     //   Alpha-Beta: cut = alpha >= beta    (bo cac nuoc con lai khi doi thu khong cho di vao nut nay)
+    // Minimax (Minimax.java) dung lai Problem va Node nhung co search() rieng voi hai ham MAX/MIN.
 
     /** Duong vo cung: lon hon moi gia tri ham danh gia tra ve. */
     public static final int INF = 1_000_000_000;
@@ -48,7 +49,7 @@ public final class GameSearch {
     public static class Node<M> {
         public final M action;          // nuoc di tu nut cha den nut nay (goc: null)
         public final int depth;         // so nuoc tu goc
-        public int value;               // gia tri negamax, theo goc nhin ben dang di tai nut
+        public int value;               // Negamax: theo goc nhin ben dang di tai nut; Minimax: theo goc nhin MAX
         public Node<M> best;            // nut con tot nhat (null o nut la)
 
         public Node(M action, int depth) {
