@@ -1,6 +1,6 @@
 # ChessAndroid (Cờ Tướng)
 
-Ứng dụng Cờ Tướng (Chinese Chess / Xiangqi) cho Android, viết bằng Java, chơi được với AI (negamax + alpha-beta pruning). Có thể chọn thuật toán cho máy ở màn hình chính: Engine tối ưu, Negamax thuần hoặc Alpha-Beta thuần.
+Ứng dụng Cờ Tướng (Chinese Chess / Xiangqi) cho Android, viết bằng Java, chơi được với AI (minimax, negamax + alpha-beta pruning). Có thể chọn thuật toán cho máy ở màn hình chính: Engine tối ưu, Minimax thuần, Negamax thuần hoặc Alpha-Beta thuần.
 
 Hướng dẫn này dành cho người mới bắt đầu tìm hiểu và đóng góp cho project.
 
@@ -53,12 +53,12 @@ Package gốc: `com.ttnt.chinesechess` (`app/src/main/java/com/ttnt/chinesechess
 | `chess/Point.java` | Một ô trên bàn cờ (x = hàng, y = cột); lớp riêng thay cho `android.graphics.Point`, nên `chess/` là Java thuần, không phụ thuộc Android |
 | `chess/PieceCode.java` | Mã quân lưu trong ô bàn cờ (`EMPTY`, `BLACK_KING`…`RED_PAWN`), loại quân (`KING`…`PAWN`) và các hàm `isRed`, `belongsTo`, `kind`, `of` |
 | `chess/C*.java` (`CKing`, `CRook`, `CCannon`, `CKnight`, `CBishop`, `CElephant`, `CPawn`) | Từng loại quân cờ và luật di chuyển riêng |
-| `ai/` | Thuật toán tìm kiếm thuần, không biết gì về cờ tướng: `GameState` (interface trò chơi), `GameSearch` (thuật toán Negamax dùng chung: `Problem`, `Node`, `search()`), `Negamax` / `AlphaBeta` (chỉ khác nhau ở hàm cắt tỉa truyền vào `Problem`) |
+| `ai/` | Thuật toán tìm kiếm thuần, không biết gì về cờ tướng: `GameState` (interface trò chơi), `GameSearch` (thuật toán Negamax dùng chung: `Problem`, `Node`, `search()`), `Negamax` / `AlphaBeta` (chỉ khác nhau ở hàm cắt tỉa truyền vào `Problem`), `Minimax` (dùng lại `Problem`/`Node`, `search()` riêng với hai hàm MAX/MIN) |
 | `ai/engine/` | Phần máy chơi: nối luật cờ ở `chess/` với thuật toán ở `ai/` và `ai/optimize/` |
-| `ai/engine/ChessState.java` | Áp dụng `GameState` cho cờ tướng (cho Negamax, Alpha-Beta): sinh nước, đi/hoàn nước, hết nước = thua, hàm đánh giá |
-| `ai/engine/Engine.java` | Máy chơi, dùng chung cho cả 3 thuật toán: `generateMove(bên đi)`; tạo bằng `Engine.negamax(board, depth)`, `alphaBeta(...)`, `optimized(board, depth, budget)` |
+| `ai/engine/ChessState.java` | Áp dụng `GameState` cho cờ tướng (cho Minimax, Negamax, Alpha-Beta): sinh nước, đi/hoàn nước, hết nước = thua, hàm đánh giá |
+| `ai/engine/Engine.java` | Máy chơi, dùng chung cho cả 4 thuật toán: `generateMove(bên đi)`; tạo bằng `Engine.minimax(board, depth)`, `negamax(...)`, `alphaBeta(...)`, `optimized(board, depth, budget)` |
 | `ai/engine/Evaluation.java` | Hàm đánh giá thế cờ và bảng điểm vị trí của từng quân, dùng chung cho mọi thuật toán |
-| `ai/engine/Algorithm.java` | Chọn thuật toán cho máy (Engine tối ưu / Negamax thuần / Alpha-Beta thuần) và độ sâu theo cấp độ |
+| `ai/engine/Algorithm.java` | Chọn thuật toán cho máy (Engine tối ưu / Minimax thuần / Negamax thuần / Alpha-Beta thuần) và độ sâu theo cấp độ |
 | `ai/optimize/` | Thuật toán tối ưu, cấu trúc theo `ai/`: `OptimizedChessState` ↔ `GameState`, `EnhancedGameSearch` ↔ `GameSearch`, `EnhancedAlphaBeta` ↔ `AlphaBeta` |
 | `ai/optimize/EnhancedGameSearch.java` | Tương ứng `GameSearch`: lớp trừu tượng kế thừa `GameSearch.Problem`, cắt tỉa bằng `AlphaBeta.CUTOFF`, chứa thuật toán tối ưu — `search(problem)` gồm iterative deepening theo thời gian, vòng negamax cắt tỉa alpha-beta, bảng chuyển vị, null-move, sắp xếp nước (MVV-LVA, killer, history), quiescence search. `Memory` giữ bảng chuyển vị giữa các nước |
 | `ai/optimize/EnhancedAlphaBeta.java` | Tương ứng `AlphaBeta`: kế thừa `EnhancedGameSearch`, là bài toán đưa vào nó — `problem(board, bên đi, độ sâu, budgetMs)`; tự giữ bảng chuyển vị dùng chung (`Memory`) |

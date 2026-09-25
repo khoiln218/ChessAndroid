@@ -15,6 +15,7 @@
     <!-- In the order of chess.Algorithm: the index picked is the enum's ordinal. -->
     <array name="algorithm">
         <item>@string/algorithm_engine</item>
+        <item>@string/algorithm_minimax</item>
         <item>@string/algorithm_negamax</item>
         <item>@string/algorithm_alpha_beta</item>
     </array>
