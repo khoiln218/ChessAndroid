@@ -5,7 +5,7 @@
 
 # BÁO CÁO MÔN HỌC: TRÍ TUỆ NHÂN TẠO
 
-**Đề tài: CỜ TƯỚNG AI — NEGAMAX, ALPHA-BETA VÀ ALPHA-BETA CẢI TIẾN**
+**Đề tài: CỜ TƯỚNG AI — MINIMAX, NEGAMAX, ALPHA-BETA VÀ ALPHA-BETA CẢI TIẾN**
 
 | | |
 |---|---|
@@ -26,11 +26,12 @@ Trò chơi đối kháng là một trong những bài toán kinh điển và lâ
 
 Cờ tướng (Xiangqi) là trò chơi trí tuệ phổ biến bậc nhất ở Việt Nam và Trung Quốc. Về mặt lý thuyết, cờ tướng thuộc lớp trò chơi hai người, tổng bằng không, thông tin đầy đủ và tất định — đúng lớp bài toán mà họ thuật toán **Minimax** và biến thể gọn gàng của nó là **Negamax** được xây dựng để giải.
 
-Báo cáo này trình bày quá trình xây dựng ứng dụng **Cờ Tướng AI** trên nền tảng Android, trong đó trọng tâm là "bộ não" của máy. Thay vì một engine duy nhất, đề tài cài đặt **ba thuật toán** trên **cùng một khung tìm kiếm**, người chơi chọn được thuật toán ngay trong ứng dụng:
+Báo cáo này trình bày quá trình xây dựng ứng dụng **Cờ Tướng AI** trên nền tảng Android, trong đó trọng tâm là "bộ não" của máy. Thay vì một engine duy nhất, đề tài cài đặt **bốn thuật toán** trên **cùng một khung tìm kiếm**, người chơi chọn được thuật toán ngay trong ứng dụng:
 
-1. **Negamax** — duyệt toàn bộ cây trò chơi tới độ sâu cho trước; là "chuẩn đối chiếu" về tính đúng.
-2. **Alpha-Beta** (dạng Negamax) — cùng vòng lặp với Negamax, chỉ khác ở **hàm cắt tỉa**; cho kết quả giống hệt nhưng duyệt ít nút hơn hàng trăm lần.
-3. **Alpha-Beta cải tiến** (*Enhanced Alpha-Beta*) — Alpha-Beta cộng các kỹ thuật giải quyết những bài toán phát sinh khi đưa thuật toán vào trò chơi thực tế: hiệu ứng đường chân trời, thứ tự nước đi, trạng thái lặp, giới hạn thời gian, cắt tỉa tiến, khoảng cách chiếu hết, luật lặp thế cờ.
+1. **Minimax** — thuật toán gốc của giáo trình với hai hàm MAX/MIN, duyệt toàn bộ cây trò chơi tới độ sâu cho trước.
+2. **Negamax** — cách viết gọn của Minimax bằng một hàm duy nhất; cho kết quả giống hệt Minimax và là "chuẩn đối chiếu" về tính đúng cho các thuật toán sau.
+3. **Alpha-Beta** (dạng Negamax) — cùng vòng lặp với Negamax, chỉ khác ở **hàm cắt tỉa**; cho kết quả giống hệt nhưng duyệt ít nút hơn hàng trăm lần.
+4. **Alpha-Beta cải tiến** (*Enhanced Alpha-Beta*) — Alpha-Beta cộng các kỹ thuật giải quyết những bài toán phát sinh khi đưa thuật toán vào trò chơi thực tế: hiệu ứng đường chân trời, thứ tự nước đi, trạng thái lặp, giới hạn thời gian, cắt tỉa tiến, khoảng cách chiếu hết, luật lặp thế cờ.
 
 Mỗi thuật toán được trình bày theo trình tự: *ý tưởng → giả mã → cài đặt trong chương trình → số liệu đo*. Toàn bộ số liệu trong báo cáo được đo trực tiếp trên mã nguồn hiện tại của đề tài.
 
@@ -38,7 +39,7 @@ Nội dung báo cáo gồm 5 chương:
 
 - **Chương 1 — Tổng quan:** luật cờ tướng và việc mô hình hoá cờ tướng thành một bài toán AI.
 - **Chương 2 — Cơ sở lý thuyết:** tìm kiếm đối kháng, Minimax, Negamax, Alpha-Beta và các kỹ thuật cải tiến.
-- **Chương 3 — Thiết kế và cài đặt:** kiến trúc, luật chơi, hàm đánh giá, khung tìm kiếm dùng chung và cài đặt chi tiết ba thuật toán.
+- **Chương 3 — Thiết kế và cài đặt:** kiến trúc, luật chơi, hàm đánh giá, khung tìm kiếm dùng chung và cài đặt chi tiết bốn thuật toán.
 - **Chương 4 — Thử nghiệm và đánh giá:** số nút duyệt, thời gian, hệ số phân nhánh hiệu dụng, đấu thử giữa các thuật toán.
 - **Chương 5 — Kết luận và hướng phát triển.**
 
@@ -94,9 +95,9 @@ Như vậy việc duyệt toàn bộ cây trò chơi là bất khả thi. Chỉ 
 **Mục tiêu:**
 
 - Nghiên cứu cơ sở lý thuyết của tìm kiếm đối kháng: Minimax, Negamax, cắt tỉa Alpha-Beta.
-- Cài đặt **ba thuật toán** — Negamax, Alpha-Beta, Alpha-Beta cải tiến — trên **một khung tìm kiếm dùng chung**, tách biệt khỏi luật cờ, theo cùng cách tổ chức mã đã dùng cho các thuật toán tìm kiếm của môn học (bài 33–35: UCS, A\*, tìm kiếm tham lam).
+- Cài đặt **bốn thuật toán** — Minimax, Negamax, Alpha-Beta, Alpha-Beta cải tiến — trên **một khung tìm kiếm dùng chung**, tách biệt khỏi luật cờ, theo cùng cách tổ chức mã đã dùng cho các thuật toán tìm kiếm của môn học (bài 33–35: UCS, A\*, tìm kiếm tham lam).
 - Phân tích các bài toán phát sinh khi áp dụng Alpha-Beta vào cờ tướng thực tế và các kỹ thuật giải quyết.
-- Đo đạc, so sánh ba thuật toán.
+- Đo đạc, so sánh bốn thuật toán.
 
 **Phạm vi:** Ứng dụng cho người chơi đấu với máy trên một thiết bị (người cầm quân Đen, máy cầm quân Đỏ). Không bao gồm chơi trực tuyến, khai cuộc/tàn cuộc dựng sẵn (opening book, endgame tablebase) và học máy.
 
@@ -174,7 +175,7 @@ MIN chọn giá trị nhỏ nhất ở mỗi nhánh: B = 3, C = 2, D = 2. MAX ch
 | Độ phức tạp thời gian | O(b^d) |
 | Độ phức tạp bộ nhớ | O(b·d) (duyệt theo chiều sâu) |
 
-Với b ≈ 40 và d = 8: 40^8 ≈ 6,5 × 10^12 nút — không thể thực hiện trên điện thoại. Minimax thuần chỉ khả thi tới độ sâu 3–4.
+Với b ≈ 40 và d = 8: 40^8 ≈ 6,5 × 10^12 nút — không thể thực hiện trên điện thoại. Minimax thuần chỉ khả thi tới độ sâu 3–4. Đề tài cài đặt Minimax đúng theo giả mã trên (mục 3.6) để làm mốc so sánh.
 
 ## 2.3. Thuật toán Negamax
 
@@ -316,7 +317,7 @@ Chạy NEGAMAX_AB trên cây ở mục 2.2.3 (giá trị lá tại nút MIN đư
 | 5 | D | (−∞, −3) | Lá −14 → α = −14; lá −5 → α = −5; lá −2 → α = −2 ≥ −3 | D trả về −2 (lá cuối, không còn gì để cắt) |
 | 6 | A | (3, +∞) | value = 2 < 3 | Gốc = 3, chọn B |
 
-Kết quả giống hệt Minimax nhưng chỉ duyệt 7/9 lá (11 thay vì 13 nút, kể cả gốc và nút trong — đúng như số đo trên chương trình ở mục 3.7.3). Nếu thứ tự các con của D là (2, 14, 5), nhánh D cũng bị cắt ngay sau lá đầu tiên — minh hoạ **thứ tự nước đi quyết định hiệu quả cắt tỉa**.
+Kết quả giống hệt Minimax nhưng chỉ duyệt 7/9 lá (11 thay vì 13 nút, kể cả gốc và nút trong — đúng như số đo trên chương trình ở mục 3.8.3). Nếu thứ tự các con của D là (2, 14, 5), nhánh D cũng bị cắt ngay sau lá đầu tiên — minh hoạ **thứ tự nước đi quyết định hiệu quả cắt tỉa**.
 
 ### 2.4.5. Độ phức tạp
 
@@ -346,7 +347,7 @@ trong đó các đặc trưng thường dùng cho cờ tướng là: **giá tr�
 
 ## 2.6. Alpha-Beta cải tiến: các bài toán khi áp dụng vào thực tế và kỹ thuật giải quyết
 
-Alpha-Beta thuần tuý vẫn còn nhiều hạn chế khi áp dụng vào một trò chơi thực tế. Mục này trình bày từng bài toán cùng kỹ thuật giải quyết được dùng trong thuật toán **Alpha-Beta cải tiến** của đề tài (cài đặt ở mục 3.8).
+Alpha-Beta thuần tuý vẫn còn nhiều hạn chế khi áp dụng vào một trò chơi thực tế. Mục này trình bày từng bài toán cùng kỹ thuật giải quyết được dùng trong thuật toán **Alpha-Beta cải tiến** của đề tài (cài đặt ở mục 3.9).
 
 ### 2.6.1. Hiệu ứng đường chân trời → Tìm kiếm tĩnh (Quiescence Search)
 
@@ -382,7 +383,7 @@ Giá trị **stand-pat** là cận dưới vì bên đi luôn có quyền không
 | 3 | **Nước sát thủ (killer moves)** | Nước yên tĩnh (không ăn quân) từng gây cắt beta tại **cùng độ sâu** ở nhánh anh em — rất có thể cũng bác bỏ được nhánh hiện tại |
 | 4 | **Heuristic lịch sử (history heuristic)** | Bảng đếm [ô đi][ô đến] cộng (độ sâu còn lại)² mỗi khi nước đó gây cắt tỉa ở bất kỳ đâu trong cây |
 
-Riêng MVV-LVA (ưu tiên 2) là đủ đơn giản để dùng cả cho Alpha-Beta thuần: trong đề tài, Alpha-Beta thuần nhận các nước đã được sắp ăn quân lên trước ngay từ khi sinh (mục 3.7.2).
+Riêng MVV-LVA (ưu tiên 2) là đủ đơn giản để dùng cả cho Alpha-Beta thuần: trong đề tài, Alpha-Beta thuần nhận các nước đã được sắp ăn quân lên trước ngay từ khi sinh (mục 3.8.2).
 
 ### 2.6.3. Trạng thái lặp lại (transposition) → Bảng chuyển vị với khoá Zobrist
 
@@ -439,7 +440,7 @@ Mã nguồn nằm trong gói gốc `com.ttnt.chinesechess`, chia theo tầng:
 | `view` | `GameView`, `TurnTimerView` | Điều phối ván cờ trên màn hình: nhận chạm, gọi AI trên luồng nền, xử lý kết thúc ván; đồng hồ lượt đi |
 | `theme` | `Graphics`, `PieceArt`, `BoardTheme` | Vẽ bàn cờ, quân cờ, bảng màu |
 | `chess` | `Board`, `Rules`, `Piece` và `CKing`…`CPawn`, `Move`, `MoveRecord`, `PieceCode`, `Point` | **Luật cờ tướng** — Java thuần |
-| `ai` | `GameState`, `GameSearch`, `Negamax`, `AlphaBeta` | **Khung tìm kiếm dùng chung** và hai thuật toán thuần — không biết gì về cờ tướng |
+| `ai` | `GameState`, `GameSearch`, `Minimax`, `Negamax`, `AlphaBeta` | **Khung tìm kiếm dùng chung** và ba thuật toán thuần — không biết gì về cờ tướng |
 | `ai.optimize` | `EnhancedGameSearch`, `EnhancedAlphaBeta`, `OptimizedChessState`, `OptimizedBoard` | **Alpha-Beta cải tiến** |
 | `ai.engine` | `Engine`, `Algorithm`, `ChessState`, `Evaluation` | Nối luật cờ với thuật toán: trạng thái cờ cho thuật toán thuần, hàm đánh giá, máy chơi, chọn thuật toán và độ sâu |
 
@@ -449,20 +450,20 @@ Quan hệ phụ thuộc giữa các gói ("A → B" nghĩa là A dùng B):
 giao diện (MenuScreen, GameScreen, view, theme) → ai.engine, chess
 ai.engine   (Engine, Algorithm, ChessState, Evaluation)       → ai, ai.optimize, chess
 ai.optimize (EnhancedGameSearch, EnhancedAlphaBeta, ...)      → ai, ai.engine (Evaluation), chess
-ai          (GameState, GameSearch, Negamax, AlphaBeta)       → (không phụ thuộc gói nào)
+ai          (GameState, GameSearch, Minimax, Negamax, AlphaBeta) → (không phụ thuộc gói nào)
 chess       (Board, Rules, Piece, Move, MoveRecord, ...)      → (không phụ thuộc gói nào)
 ```
 
-Hai gói ở tầng dưới cùng — `chess` và `ai` — **không phụ thuộc gói nào khác** (chỉ dùng thư viện chuẩn `java.util`); đã kiểm tra bằng cách biên dịch riêng từng gói bằng `javac` thông thường, không có thư viện Android. Nhờ đó luật cờ và thuật toán kiểm thử được hoàn toàn trên máy tính (mục 3.10). Trong `ai.engine`, chỉ `Engine` dùng một lớp Android (`android.util.Log`, để ghi nhật ký).
+Hai gói ở tầng dưới cùng — `chess` và `ai` — **không phụ thuộc gói nào khác** (chỉ dùng thư viện chuẩn `java.util`); đã kiểm tra bằng cách biên dịch riêng từng gói bằng `javac` thông thường, không có thư viện Android. Nhờ đó luật cờ và thuật toán kiểm thử được hoàn toàn trên máy tính (mục 3.11). Trong `ai.engine`, chỉ `Engine` dùng một lớp Android (`android.util.Log`, để ghi nhật ký).
 
 ### 3.1.2. Luồng một lượt của máy
 
-1. Người chơi chọn **thuật toán** (Alpha-Beta cải tiến / Negamax / Alpha-Beta) và **cấp độ** ở màn hình chính; lựa chọn được lưu trong `Settings`.
+1. Người chơi chọn **thuật toán** (Alpha-Beta cải tiến / Minimax / Negamax / Alpha-Beta) và **cấp độ** ở màn hình chính; lựa chọn được lưu trong `Settings`.
 2. Khi mở ván, `GameView` đọc cài đặt và tạo máy chơi: `engine = algorithm.create(board, level)`.
 3. Đến lượt máy, `GameView` gọi `engine.generateMove(board.redToMove)` trên một **luồng nền đơn** (`ExecutorService`) để giao diện không bị treo; đồng hồ của máy hiện vòng quay "Đang suy nghĩ…".
 4. Kết quả được gửi về luồng giao diện qua `Handler`: thực hiện nước đi, ghi biên bản (`MoveRecord`), kiểm tra thua (`Rules.hasLost`) và lặp thế cờ (`Rules.judgeRepetition`).
 
-Hình ảnh các bước này trên ứng dụng được trình bày ở mục 3.11.
+Hình ảnh các bước này trên ứng dụng được trình bày ở mục 3.12.
 
 ## 3.2. Biểu diễn bàn cờ và nước đi
 
@@ -503,7 +504,7 @@ public void undo(Move move) {
 }
 ```
 
-**Biên bản ván cờ (`MoveRecord`)**: sau mỗi nước, `Board` ghi một bản ghi gồm **bản chụp 90 ô** sau nước đi, bên vừa đi, nước đó có chiếu hay có đuổi bắt không. Biên bản dùng cho luật lặp thế cờ (mục 3.3) và cho thuật toán cải tiến nhận ra các thế đã có trong ván (mục 3.8.5). Hai thế được coi là giống nhau khi cùng bên đi và cùng từng ô (`Arrays.equals`), nên việc xử lặp không bao giờ nhầm do trùng mã băm.
+**Biên bản ván cờ (`MoveRecord`)**: sau mỗi nước, `Board` ghi một bản ghi gồm **bản chụp 90 ô** sau nước đi, bên vừa đi, nước đó có chiếu hay có đuổi bắt không. Biên bản dùng cho luật lặp thế cờ (mục 3.3) và cho thuật toán cải tiến nhận ra các thế đã có trong ván (mục 3.9.5). Hai thế được coi là giống nhau khi cùng bên đi và cùng từng ô (`Arrays.equals`), nên việc xử lặp không bao giờ nhầm do trùng mã băm.
 
 ## 3.3. Luật chơi (`Rules`)
 
@@ -519,7 +520,7 @@ Toàn bộ luật chơi nằm trong lớp `Rules` (các hàm tĩnh nhận `Board
 | | `givesCheck`, `isChasing` | Nước vừa đi có chiếu / có đuổi bắt quân không được bảo vệ |
 | | `judgeRepetition(history)` | Xử luật lặp thế cờ (trường chiếu, trường bắt, hoà) |
 
-**Sinh nước.** Mỗi lớp quân (`CKing`, `CBishop` — Sĩ, `CElephant`, `CKnight`, `CRook`, `CCannon`, `CPawn`) cài đặt `generate()` theo luật riêng (Mã kiểm tra cản chân, Pháo tìm ngòi, Tốt kiểm tra đã qua sông...). Mọi nước đều đi qua một điểm chung `Piece.offer()`, nơi có hai tuỳ chọn phục vụ tìm kiếm: `capturesOnly` — chỉ sinh nước ăn quân (cho tìm kiếm tĩnh); `legalOnly` — chỉ giữ nước không để tướng mình bị chiếu. Khi `legalOnly` tắt, danh sách là **giả hợp lệ (pseudo-legal)** và người gọi phải tự kiểm tra từng nước khi thực sự đi (mục 3.8.7).
+**Sinh nước.** Mỗi lớp quân (`CKing`, `CBishop` — Sĩ, `CElephant`, `CKnight`, `CRook`, `CCannon`, `CPawn`) cài đặt `generate()` theo luật riêng (Mã kiểm tra cản chân, Pháo tìm ngòi, Tốt kiểm tra đã qua sông...). Mọi nước đều đi qua một điểm chung `Piece.offer()`, nơi có hai tuỳ chọn phục vụ tìm kiếm: `capturesOnly` — chỉ sinh nước ăn quân (cho tìm kiếm tĩnh); `legalOnly` — chỉ giữ nước không để tướng mình bị chiếu. Khi `legalOnly` tắt, danh sách là **giả hợp lệ (pseudo-legal)** và người gọi phải tự kiểm tra từng nước khi thực sự đi (mục 3.9.7).
 
 **Kiểm tra chiếu nhìn từ tướng (`Rules.kingSafe`).** Thay vì hỏi từng quân địch "có tấn công được tướng không", hàm nhìn ra từ vị trí tướng: 4 tia thẳng phát hiện Xe, Pháo (nhảy qua đúng một ngòi) và luật hai tướng đối mặt; 8 vị trí Mã (có kiểm tra cản chân); 3 vị trí Tốt. Sĩ và Tượng bị bỏ qua vì không bao giờ rời nửa bàn cờ của mình nên không thể tấn công tướng địch. Đây là đoạn mã chạy nhiều nhất của chương trình, vì mọi nước sinh ra đều phải qua phép kiểm tra này.
 
@@ -527,7 +528,7 @@ Toàn bộ luật chơi nằm trong lớp `Rules` (các hàm tĩnh nhận `Board
 
 ## 3.4. Hàm đánh giá (`Evaluation`)
 
-`Evaluation.score(board, side)` trả về điểm theo góc nhìn của `side` — đúng yêu cầu của Negamax. Cả ba thuật toán dùng chung hàm này. Điểm gồm ba thành phần.
+`Evaluation.score(board, side)` trả về điểm theo góc nhìn của `side` — đúng yêu cầu của Negamax (Minimax tự đổi dấu ở nút MIN, mục 3.6.2). Cả bốn thuật toán dùng chung hàm này. Điểm gồm ba thành phần.
 
 **(1) Bảng điểm theo ô (piece-square table).** Mỗi loại quân có một bảng 10×9 cho biết giá trị của quân đó tại từng ô. Giá trị trong bảng đã bao gồm cả giá trị vật chất (Xe ≈ 90, Pháo ≈ 50, Mã ≈ 40, Tượng ≈ 22–28, Sĩ ≈ 19–22, Tốt 0–23) lẫn giá trị vị trí. Ví dụ bảng của quân Xe (nhìn từ phía Đen):
 
@@ -563,7 +564,7 @@ Ngoài ra `Evaluation` cung cấp giá trị quân dùng để **sắp xếp** n
 
 ### 3.5.1. Ý tưởng thiết kế
 
-Ba thuật toán của đề tài có chung phần lớn nội dung: đều là Negamax, chỉ khác ở việc có cắt tỉa hay không và có các kỹ thuật bổ trợ hay không. Để thể hiện đúng điều đó trong mã nguồn, đề tài tổ chức phần AI theo **cùng cách** đã dùng cho các thuật toán tìm kiếm trên đồ thị của môn học (bài 33, 34, 35):
+Bốn thuật toán của đề tài có chung phần lớn nội dung: Minimax và Negamax là hai cách viết của cùng một phép duyệt cây; Negamax, Alpha-Beta và Alpha-Beta cải tiến lại chỉ khác nhau ở việc có cắt tỉa hay không và có các kỹ thuật bổ trợ hay không. Để thể hiện đúng điều đó trong mã nguồn, đề tài tổ chức phần AI theo **cùng cách** đã dùng cho các thuật toán tìm kiếm trên đồ thị của môn học (bài 33, 34, 35):
 
 | Bài 33–35 (tìm đường trên đồ thị) | Đề tài (tìm kiếm đối kháng) |
 |---|---|
@@ -572,7 +573,7 @@ Ba thuật toán của đề tài có chung phần lớn nội dung: đều là 
 | `BestFirstSearch.search(problem)` — thuật toán dùng chung | `GameSearch.search(problem)` — thuật toán dùng chung |
 | UCS, A\*, Tham lam chỉ khác ở **hàm đánh giá f(n)** truyền vào `Problem`: `(g, h) -> g`, `(g, h) -> g + h`, `(g, h) -> h` | Negamax, Alpha-Beta chỉ khác ở **hàm cắt tỉa** truyền vào `Problem`: `(α, β) -> false`, `(α, β) -> α >= β` |
 
-Nhờ vậy, sự khác biệt giữa Negamax và Alpha-Beta trong mã nguồn đúng bằng sự khác biệt của chúng trong lý thuyết: **một dòng** — hàm cắt tỉa.
+Nhờ vậy, sự khác biệt giữa Negamax và Alpha-Beta trong mã nguồn đúng bằng sự khác biệt của chúng trong lý thuyết: **một dòng** — hàm cắt tỉa. Minimax dùng lại `Problem` và `Node` nhưng có hàm `search()` riêng với hai hàm MAX/MIN (mục 3.6), vì khác biệt của nó với Negamax nằm ở chính vòng lặp.
 
 ### 3.5.2. Giao diện trò chơi `GameState`
 
@@ -590,7 +591,7 @@ public interface GameState<M> {
 }
 ```
 
-Trạng thái được tìm kiếm **tại chỗ**: thuật toán đi một nước, tìm bên dưới, rồi hoàn tác — không bao giờ sao chép thế cờ. `GameState` không biết gì về cờ tướng; lớp `ChessState` (mục 3.6.2) là cài đặt cho cờ tướng.
+Trạng thái được tìm kiếm **tại chỗ**: thuật toán đi một nước, tìm bên dưới, rồi hoàn tác — không bao giờ sao chép thế cờ. `GameState` không biết gì về cờ tướng; lớp `ChessState` (mục 3.7.2) là cài đặt cho cờ tướng.
 
 ### 3.5.3. Thuật toán dùng chung `GameSearch`
 
@@ -616,7 +617,7 @@ public final class GameSearch {
     public static class Node<M> {
         public final M action;          // nuoc di tu nut cha den nut nay (goc: null)
         public final int depth;         // so nuoc tu goc
-        public int value;               // gia tri negamax, theo goc nhin ben dang di tai nut
+        public int value;               // Negamax: theo goc nhin ben dang di tai nut; Minimax: theo goc nhin MAX
         public Node<M> best;            // nut con tot nhat (null o nut la)
         public M bestAction() { return best == null ? null : best.action; }
     }
@@ -661,9 +662,82 @@ Hàm `negamax` là cài đặt trực tiếp của giả mã NEGAMAX_AB (mục 2
 - **Đếm nút:** `visited` tính mọi nút được gọi `negamax`, gồm cả gốc, nút trong và nút lá — dùng cho các phép đo ở Chương 4.
 - Cây không được lưu lại: mỗi nút chỉ giữ tham chiếu tới con tốt nhất, nên sau khi tìm xong chỉ còn đường đi chính (principal variation) trong bộ nhớ.
 
-## 3.6. Thuật toán Negamax
+## 3.6. Thuật toán Minimax
 
 ### 3.6.1. Cài đặt
+
+Minimax được cài đặt **đúng như giả mã giáo trình** (mục 2.2.2): hai hàm `maxValue` và `minValue` gọi xen kẽ nhau, mọi giá trị đều tính theo góc nhìn của **MAX** — bên có lượt đi ở gốc, tức là máy:
+
+```java
+public final class Minimax {
+    // Duyet het cay nhu Negamax: khong bao gio cat
+    public static <M> GameSearch.Problem<M> problem(GameState<M> state, int depth) {
+        return new GameSearch.Problem<>(state, depth, Negamax.CUTOFF);
+    }
+
+    public static <M> GameSearch.Node<M> search(GameSearch.Problem<M> problem) {
+        problem.visited = 0;
+        GameSearch.Node<M> root = new GameSearch.Node<>(null, 0);
+        maxValue(problem, root);
+        return root;
+    }
+
+    // Nut MAX: chon con co gia tri lon nhat
+    private static <M> int maxValue(GameSearch.Problem<M> problem, GameSearch.Node<M> node) {
+        problem.visited++;
+        if (problem.isLeaf(node)) {
+            node.value = problem.eval();        // MAX dang di: dung goc nhin
+            return node.value;
+        }
+        GameState<M> state = problem.initial;
+        int best = -GameSearch.INF;
+        for (M a : problem.actions()) {
+            GameSearch.Node<M> child = new GameSearch.Node<>(a, node.depth + 1);
+            state.play(a);
+            int value = minValue(problem, child);
+            state.undo(a);
+            if (value > best) {                 // cung gia tri: giu nuoc gap truoc
+                best = value;
+                node.best = child;
+            }
+        }
+        node.value = best;
+        return best;
+    }
+
+    // Nut MIN: chon con co gia tri nho nhat
+    private static <M> int minValue(GameSearch.Problem<M> problem, GameSearch.Node<M> node) {
+        problem.visited++;
+        if (problem.isLeaf(node)) {
+            node.value = -problem.eval();       // MIN dang di: doi dau ve goc nhin MAX
+            return node.value;
+        }
+        ...                                     // doi xung voi maxValue: INF, maxValue(child), value < best
+    }
+}
+```
+
+Lời gọi theo kiểu giáo trình: `Minimax.search(Minimax.problem(state, depth))`.
+
+### 3.6.2. Quan hệ với khung dùng chung
+
+- **Dùng lại `Problem` và `Node`.** Minimax dùng nguyên `GameSearch.Problem` (trạng thái gốc, độ sâu, `isLeaf`, `actions`, `eval`, bộ đếm `visited`) và `GameSearch.Node` (nước đi, độ sâu, giá trị, con tốt nhất). Vì Minimax không cắt tỉa, hàm cắt truyền vào là `Negamax.CUTOFF` (không bao giờ cắt) và thực ra không được dùng tới.
+- **Có hàm `search()` riêng.** Vòng lặp `GameSearch.negamax` (mục 3.5.3) là dạng Negamax — một hàm duy nhất với phép đổi dấu. Minimax cần **hai** hàm cho hai loại nút, nên có `search()` riêng; đây đúng là khác biệt giữa hai thuật toán trong lý thuyết (mục 2.3.1).
+- **Đổi dấu ở nút lá MIN.** `GameState.evaluate()` luôn chấm điểm theo góc nhìn **bên đang đi** (yêu cầu của Negamax). Giả mã Minimax lại cần EVAL theo góc nhìn của MAX. Ở nút lá mà MIN có lượt, `minValue` đổi dấu điểm đánh giá: `-problem.eval()`. Đây là chỗ duy nhất Minimax phải "biết" về quy ước của `GameState`.
+- **Ý nghĩa của `Node.value`.** Với Negamax, giá trị một nút tính theo bên đang đi tại nút đó; với Minimax, mọi nút đều tính theo MAX. Tại gốc hai cách hiểu trùng nhau (bên đi ở gốc chính là MAX), nên `Engine` đọc kết quả của cả hai thuật toán theo cùng một cách.
+- **Trạng thái cờ tướng:** dùng chung `ChessState` (mục 3.7.2) với Negamax và Alpha-Beta, nên cả ba thuật toán thuần duyệt nước theo cùng một thứ tự.
+
+### 3.6.3. Ví dụ và kiểm chứng tương đương với Negamax
+
+Trên cây ở mục 2.2.3, `Minimax.search(...)` trả về giá trị 3 và nước B sau **13 nút** — giống hệt Negamax. Khác biệt chỉ ở giá trị lưu tại nút con: Minimax lưu B = **3** (theo góc nhìn MAX), còn Negamax lưu B = **−3** (theo góc nhìn MIN, bên đang đi tại B).
+
+Trên cờ tướng, Minimax và Negamax cho **cùng nước đi, cùng giá trị gốc và cùng số nút** ở mọi độ sâu 1–4, trên cả thế khai cuộc và trung cuộc (mục 4.2). Đó là bằng chứng thực nghiệm cho kết luận ở mục 2.3.2: Negamax chỉ là cách viết gọn của Minimax. Thời gian chạy của hai thuật toán cũng gần như bằng nhau: phép đổi dấu của Negamax và việc chọn giữa hai hàm của Minimax đều không đáng kể so với chi phí sinh nước và đánh giá.
+
+Vì chi phí O(b^d) như Negamax, trong ứng dụng Minimax dùng cùng độ sâu **2 / 3 / 4** cho ba cấp độ, và cũng không có tìm kiếm tĩnh hay phát hiện lặp thế cờ.
+
+## 3.7. Thuật toán Negamax
+
+### 3.7.1. Cài đặt
 
 Với khung dùng chung, Negamax chỉ là một `Problem` có hàm cắt tỉa **không bao giờ cắt**:
 
@@ -683,9 +757,9 @@ public final class Negamax {
 
 Lời gọi theo đúng kiểu của giáo trình: `GameSearch.search(Negamax.problem(state, depth))`. Vì cửa sổ (α, β) vẫn được truyền nhưng không bao giờ dẫn tới cắt, vòng lặp duyệt **đủ mọi nước** ở mọi nút và giá trị trả về luôn là giá trị Negamax chính xác.
 
-### 3.6.2. Trạng thái cờ tướng cho thuật toán thuần: `ChessState`
+### 3.7.2. Trạng thái cờ tướng cho thuật toán thuần: `ChessState`
 
-`ChessState` cài đặt `GameState<Move>` cho cờ tướng, dùng chung cho Negamax và Alpha-Beta. Nó làm việc trên **bản sao** bàn cờ, nên bàn cờ đang hiển thị không bao giờ bị động tới:
+`ChessState` cài đặt `GameState<Move>` cho cờ tướng, dùng chung cho Minimax, Negamax và Alpha-Beta. Nó làm việc trên **bản sao** bàn cờ, nên bàn cờ đang hiển thị không bao giờ bị động tới:
 
 ```java
 public List<Move> moves() {
@@ -711,17 +785,17 @@ public int evaluate() {
 
 - **Kết thúc ván:** `isTerminal()` hỏi "bên đang đi còn nước hợp lệ không" — trả lời cả hai trường hợp chiếu bí và hết nước, cờ tướng đều xử thua. Kết quả được **nhớ tạm** theo `version` (tăng mỗi lần `play`/`undo`), vì ở nút lá thuật toán hỏi `isTerminal()` rồi `evaluate()` lại hỏi thêm lần nữa.
 - **Điểm thua theo khoảng cách:** `ply` đếm số nước từ gốc, nên thế bị chiếu bí ở ply 1 được chấm −899.999 (với bên thua), ở ply 3 là −899.997. Nhìn từ gốc, bên thắng thấy +899.999 và +899.997, nên tự động chọn đường chiếu bí ngắn nhất.
-- **Thứ tự nước:** `moves()` sắp nước ăn quân lên trước. Với Negamax điều này không đổi kết quả (mọi nước đều được duyệt), nhưng nó đảm bảo Negamax và Alpha-Beta xét nước theo **cùng một thứ tự**, nên hai thuật toán chọn cùng một nước đi — thuận tiện cho việc đối chiếu.
+- **Thứ tự nước:** `moves()` sắp nước ăn quân lên trước. Với Negamax điều này không đổi kết quả (mọi nước đều được duyệt), nhưng nó đảm bảo Minimax, Negamax và Alpha-Beta xét nước theo **cùng một thứ tự**, nên ba thuật toán chọn cùng một nước đi — thuận tiện cho việc đối chiếu.
 
-### 3.6.3. Ví dụ và đặc điểm
+### 3.7.3. Ví dụ và đặc điểm
 
 Trên cây ở mục 2.2.3, `GameSearch.search(Negamax.problem(...))` trả về giá trị 3, nước B, sau khi duyệt đủ **13 nút** (gốc, 3 nút MIN, 9 lá). Trên cờ tướng, số nút tăng đúng theo b^d: ở thế khai cuộc (b = 44) là 45, 1.965, 81.631, 3.371.871 nút với d = 1..4 (Chương 4).
 
 Negamax thuần **không** phát hiện lặp thế cờ và **không** có tìm kiếm tĩnh — đúng như giả mã giáo trình. Vì chi phí O(b^d), trong ứng dụng Negamax được giới hạn ở độ sâu **2 / 3 / 4** cho ba cấp độ; độ sâu 5 đã cần khoảng 44 lần độ sâu 4, tức cỡ nửa phút mỗi nước trên máy tính.
 
-## 3.7. Thuật toán Alpha-Beta
+## 3.8. Thuật toán Alpha-Beta
 
-### 3.7.1. Cài đặt
+### 3.8.1. Cài đặt
 
 Alpha-Beta dùng **đúng** vòng lặp `GameSearch.negamax` ở mục 3.5.3; khác biệt duy nhất so với Negamax là hàm cắt tỉa:
 
@@ -742,11 +816,11 @@ public final class AlphaBeta {
 
 Trong vòng lặp, sau mỗi nước con: `best` là giá trị tốt nhất đã thấy, `alpha` được nâng lên `best`, và khi `alpha >= beta` vòng lặp dừng — các nước còn lại của nút bị bỏ qua. Ở gốc, cửa sổ ban đầu là (−INF, +INF) nên gốc không bao giờ bị cắt và luôn có nước tốt nhất. Hàm trả về `best` (không kẹp vào cửa sổ), tức là phiên bản **fail-soft** (mục 2.4.3).
 
-### 3.7.2. Thứ tự nước đi trong Alpha-Beta thuần
+### 3.8.2. Thứ tự nước đi trong Alpha-Beta thuần
 
 Alpha-Beta thuần dùng chung `ChessState` với Negamax, nên các nước đã được sắp **ăn quân trước, quân bị ăn giá trị cao trước** (MVV-LVA) ngay trong `moves()`. Các nước yên tĩnh (không ăn quân) có cùng điểm 0 và giữ nguyên thứ tự sinh ra nhờ phép sắp xếp ổn định. Đây là cải tiến duy nhất về thứ tự mà Alpha-Beta thuần có; các heuristic thứ tự còn lại (hash move, killer, history) chỉ có trong thuật toán cải tiến. Mục 4.2 đo riêng tác dụng của phép sắp xếp này bằng một biến thể không sắp xếp.
 
-### 3.7.3. Ví dụ: vết chạy trên cây giáo trình
+### 3.8.3. Ví dụ: vết chạy trên cây giáo trình
 
 Chạy `GameSearch.search(AlphaBeta.problem(...))` trên cây ở mục 2.2.3, ghi lại mỗi nút khi duyệt xong (giá trị theo góc nhìn bên đi tại nút đó):
 
@@ -766,13 +840,13 @@ Chạy `GameSearch.search(AlphaBeta.problem(...))` trên cây ở mục 2.2.3, g
 
 Kết quả: giá trị 3, nước B — giống Negamax — sau **11 nút** thay vì 13. Trên cờ tướng, ở độ sâu 4 tại thế khai cuộc, Alpha-Beta duyệt 26.289 nút so với 3.371.871 nút của Negamax (ít hơn 128 lần) và trả về **cùng** giá trị gốc ở mọi độ sâu (Chương 4).
 
-### 3.7.4. Đặc điểm trong ứng dụng
+### 3.8.4. Đặc điểm trong ứng dụng
 
 Giống Negamax, Alpha-Beta thuần không có tìm kiếm tĩnh, bảng chuyển vị hay phát hiện lặp — nó là "Alpha-Beta của giáo trình". Nhờ cắt tỉa, nó nhìn sâu hơn Negamax 2 ply với cùng thời gian: độ sâu **4 / 5 / 6** cho ba cấp độ.
 
-## 3.8. Thuật toán Alpha-Beta cải tiến
+## 3.9. Thuật toán Alpha-Beta cải tiến
 
-### 3.8.1. Tổng quan và cấu trúc lớp
+### 3.9.1. Tổng quan và cấu trúc lớp
 
 Alpha-Beta cải tiến vẫn là Negamax với hàm cắt tỉa của Alpha-Beta, nhưng bổ sung các kỹ thuật ở mục 2.6 tại **từng bước** của vòng lặp. Các lớp trong gói `ai.optimize` được tổ chức song song với gói `ai`:
 
@@ -804,7 +878,7 @@ EnhancedGameSearch.search(EnhancedAlphaBeta.problem(board, side, depth, budgetMs
 
 **`OptimizedBoard`** kế thừa `Board` và cập nhật dần, sau mỗi nước đi/hoàn tác: khoá Zobrist của thế cờ, số Xe/Mã/Pháo của mỗi bên, và đường đi các khoá từ gốc (để phát hiện lặp). **`OptimizedChessState`** cài đặt `GameState<Move>` trên `OptimizedBoard`, đếm `ply` từ gốc, chấm điểm và trả lời thêm các câu hỏi mà thuật toán cải tiến cần: `key()`, `staticEval()`, `captures()`, `pseudoMoves()`, `lastMoveLegal()`, `repeated()`, `canPass()`, `pass()`/`unpass()`.
 
-### 3.8.2. Vòng lặp chính và các điểm can thiệp
+### 3.9.2. Vòng lặp chính và các điểm can thiệp
 
 ```java
 private int negamax(GameSearch.Node<Move> node, int alpha, int beta) {
@@ -849,7 +923,7 @@ So với `GameSearch.negamax` (mục 3.5.3), phần khung — đổi dấu, đ�
 
 Các mục tiếp theo trình bày từng điểm.
 
-### 3.8.3. Tìm kiếm sâu dần và quản lý thời gian
+### 3.9.3. Tìm kiếm sâu dần và quản lý thời gian
 
 ```java
 private GameSearch.Node<Move> deepen() {
@@ -882,7 +956,7 @@ private GameSearch.Node<Move> deepen() {
 - **Kiểm tra thời gian** (`outOfTime`) chỉ đọc đồng hồ mỗi 256 nút (`CLOCK_CHECK_MASK = 255`) để giảm chi phí. Khi hết giờ, cờ `aborted` được bật, mọi nút sau đó trả về ngay, và toàn bộ lần lặp dở dang bị loại — nước đi được chọn luôn đến từ một lần lặp **đã hoàn thành**.
 - **Quyết định có đào sâu thêm không** (`worthDeepening`): một ply mới tốn nhiều lần tổng thời gian đã dùng, nên chỉ bắt đầu ply mới khi thời gian đã dùng **< 1/8 ngân sách** (`DEEPEN_FRACTION = 8`). Bắt đầu một ply rồi bỏ dở là lãng phí toàn bộ thời gian còn lại.
 
-### 3.8.4. Trước khi duyệt một nút: `known`
+### 3.9.4. Trước khi duyệt một nút: `known`
 
 Mã trích lược (bỏ các kiểm tra biên mảng):
 
@@ -930,7 +1004,7 @@ private int remaining(GameSearch.Node<Move> node) {
 
 Nếu kết quả khi bỏ lượt vẫn ≥ β, nút bị cắt ngay. Riêng khi kết quả là điểm chiếu hết, hàm chỉ trả về β (cắt theo cận là đúng, nhưng "chiếu hết sau một nước không ai được đi" không phải chiếu hết thật).
 
-### 3.8.5. Bảng chuyển vị và khoá Zobrist
+### 3.9.5. Bảng chuyển vị và khoá Zobrist
 
 **Khoá Zobrist** nằm trong `OptimizedBoard`: bảng số ngẫu nhiên 64-bit `ZOBRIST[90 ô][22 mã quân]` và `ZOBRIST_SIDE` (seed cố định để mọi lần chạy băm giống nhau, dễ tái hiện lỗi). Khoá được tính đầy đủ một lần khi dựng bàn cờ, sau đó cập nhật bằng XOR:
 
@@ -952,7 +1026,7 @@ Khoá của các thế đã có trong ván được tính một lần từ biên
 
 **Điểm chiếu hết trong bảng** được quy đổi: khi lưu, điểm chiếu hết được đổi sang khoảng cách tính từ chính thế cờ (`toTT`), khi đọc thì đổi ngược lại theo ply hiện tại (`fromTT`). Nhờ vậy một mục được dùng lại ở độ sâu khác vẫn cho đúng khoảng cách chiếu hết.
 
-### 3.8.6. Sắp xếp nước đi: `actions`
+### 3.9.6. Sắp xếp nước đi: `actions`
 
 Tại gốc, danh sách nước của lần lặp trước được dùng lại (nước tốt nhất lên đầu). Ở các nút khác, mỗi nước được chấm điểm rồi sắp xếp giảm dần bằng sắp xếp chèn (ổn định — nước cùng điểm giữ thứ tự sinh):
 
@@ -972,7 +1046,7 @@ private int moveScore(Move move, int wanted, int ply) {
 
 Các bậc điểm là lũy thừa của 2 cách xa nhau nên các nhóm không bao giờ lẫn vào nhau: mọi nước ăn quân xếp sau hash move và trước mọi nước sát thủ; điểm lịch sử bị chặn ở `HISTORY_CAP = 2^20`. Một nước được mã hoá thành một số nguyên `from << 8 | to` (mỗi ô 0–89 vừa trong 8 bit) để so sánh và làm chỉ số bảng lịch sử `[90][90]`.
 
-### 3.8.7. Sinh nước giả hợp lệ: `legal`
+### 3.9.7. Sinh nước giả hợp lệ: `legal`
 
 Ở các nút trong, `actions` lấy nước từ `pseudoMoves()` — **không** kiểm tra tướng mình có bị chiếu sau nước đó. Việc kiểm tra chỉ diễn ra khi nước thực sự được đi:
 
@@ -984,7 +1058,7 @@ private boolean legal() {
 
 `lastMoveLegal()` gọi `Rules.kingSafe` cho bên vừa đi. Vì Alpha-Beta với thứ tự tốt thường cắt sau 1–2 nước đầu, phần lớn các nước còn lại không bao giờ được đi và không phải kiểm tra — trong khi kiểm tra chiếu là thao tác tốn kém nhất của việc sinh nước. Nút không có nước hợp lệ nào vẫn được nhận ra đúng vì `isLeaf` đã hỏi `isTerminal()` (còn nước hợp lệ không) trước khi vào vòng lặp.
 
-### 3.8.8. Nút lá: tìm kiếm tĩnh
+### 3.9.8. Nút lá: tìm kiếm tĩnh
 
 ```java
 private int leafValue(GameSearch.Node<Move> node, int alpha, int beta) {
@@ -1020,43 +1094,49 @@ private int quiesce(int alpha, int beta) {
 
 Tìm kiếm tĩnh cũng là Negamax với cửa sổ Alpha-Beta, chỉ khác ở tập nước (chỉ ăn quân) và việc dùng stand-pat làm cận dưới. Độ sâu mở rộng bị giới hạn bởi `QUIET_PLIES = 4` để tránh bùng nổ trong những thế có chuỗi ăn quân dài; biên an toàn của cắt delta là `DELTA = 25` (đơn vị của hàm đánh giá, xấp xỉ giá trị một Tượng).
 
-### 3.8.9. Khi quay lui: `cutoffBy` và `searched`
+### 3.9.9. Khi quay lui: `cutoffBy` và `searched`
 
 **`cutoffBy`** — khi một nước **yên tĩnh** gây cắt: đưa nó vào vị trí sát thủ thứ nhất của ply đó (sát thủ cũ lùi xuống vị trí thứ hai), và cộng (độ sâu còn lại)² vào bảng lịch sử — cắt ở nút càng sâu phía trên càng có trọng số lớn. Nước ăn quân không cần ghi vì đã được MVV-LVA xếp trước.
 
 **`searched`** — lưu kết quả của nút vào bảng chuyển vị, trừ khi lần lặp đã bị bỏ dở do hết giờ. Loại cận được suy từ giá trị so với cửa sổ ban đầu (fail-soft, mục 2.4.3): `best ≤ α₀` → UPPER, `best ≥ β` → LOWER, còn lại → EXACT. Chính sách thay thế: không ghi đè một mục của **cùng** thế cờ đã được tìm sâu hơn.
 
-### 3.8.10. So sánh ba thuật toán trong mã nguồn
+### 3.9.10. So sánh bốn thuật toán trong mã nguồn
 
-| Đặc điểm | Negamax | Alpha-Beta | Alpha-Beta cải tiến |
-|---|---|---|---|
-| Vòng lặp | `GameSearch.negamax` | `GameSearch.negamax` | Vòng lặp riêng, cùng khung |
-| Hàm cắt tỉa | `(α, β) -> false` | `(α, β) -> α >= β` | `AlphaBeta.CUTOFF` |
-| Trạng thái | `ChessState` | `ChessState` | `OptimizedChessState` + `OptimizedBoard` |
-| Thứ tự nước | MVV-LVA (không ảnh hưởng kết quả) | MVV-LVA | Hash move, MVV-LVA, killer, history |
-| Nước giả hợp lệ | Không | Không | Có |
-| Nút lá | Hàm đánh giá | Hàm đánh giá | Tìm kiếm tĩnh + cắt delta |
-| Bảng chuyển vị | Không | Không | Có (Zobrist, 2^17 ô) |
-| Null-move | Không | Không | Có |
-| Phát hiện lặp trong cây | Không | Không | Có |
-| Tìm kiếm sâu dần, giới hạn thời gian | Không (độ sâu cố định) | Không (độ sâu cố định) | Có |
-| Điểm thua theo khoảng cách | Có | Có | Có (+ quy đổi trong bảng) |
+| Đặc điểm | Minimax | Negamax | Alpha-Beta | Alpha-Beta cải tiến |
+|---|---|---|---|---|
+| Vòng lặp | `Minimax.maxValue` / `minValue` | `GameSearch.negamax` | `GameSearch.negamax` | Vòng lặp riêng, cùng khung |
+| Góc nhìn của giá trị | Luôn theo MAX | Bên đang đi tại nút | Bên đang đi tại nút | Bên đang đi tại nút |
+| Hàm cắt tỉa | Không dùng | `(α, β) -> false` | `(α, β) -> α >= β` | `AlphaBeta.CUTOFF` |
+| Trạng thái | `ChessState` | `ChessState` | `ChessState` | `OptimizedChessState` + `OptimizedBoard` |
+| Thứ tự nước | MVV-LVA (không ảnh hưởng kết quả) | MVV-LVA (không ảnh hưởng kết quả) | MVV-LVA | Hash move, MVV-LVA, killer, history |
+| Nước giả hợp lệ | Không | Không | Không | Có |
+| Nút lá | Hàm đánh giá (đổi dấu ở nút MIN) | Hàm đánh giá | Hàm đánh giá | Tìm kiếm tĩnh + cắt delta |
+| Bảng chuyển vị | Không | Không | Không | Có (Zobrist, 2^17 ô) |
+| Null-move | Không | Không | Không | Có |
+| Phát hiện lặp trong cây | Không | Không | Không | Có |
+| Tìm kiếm sâu dần, giới hạn thời gian | Không (độ sâu cố định) | Không (độ sâu cố định) | Không (độ sâu cố định) | Có |
+| Điểm thua theo khoảng cách | Có | Có | Có | Có (+ quy đổi trong bảng) |
 
 Đề tài **không** dùng kỹ thuật PVS/NegaScout (tìm các nước sau nước đầu bằng cửa sổ rỗng rồi tìm lại khi cần). PVS thay đổi chính cách vòng lặp gọi xuống nút con, trong khi thiết kế ở đây giữ nguyên vòng lặp của Alpha-Beta và chỉ gắn kỹ thuật vào các điểm can thiệp. PVS được đưa vào hướng phát triển (Chương 5).
 
-## 3.9. Máy chơi, cấp độ và lựa chọn thuật toán
+## 3.10. Máy chơi, cấp độ và lựa chọn thuật toán
 
-**`Engine`** là lớp duy nhất mà giao diện dùng để hỏi nước đi. Ba hàm tạo ứng với ba thuật toán; mỗi hàm truyền vào một hàm tìm kiếm (lambda) nhận "bên nào đi" và trả về kết quả:
+**`Engine`** là lớp duy nhất mà giao diện dùng để hỏi nước đi. Bốn hàm tạo ứng với bốn thuật toán; mỗi hàm truyền vào một hàm tìm kiếm (lambda) nhận "bên nào đi" và trả về kết quả:
 
 ```java
+public static Engine minimax(Board board, int depth) {
+    return new Engine("Minimax", depth, red ->
+            run(Minimax.problem(new ChessState(board, red), depth), Minimax::search, depth));
+}
+
 public static Engine negamax(Board board, int depth) {
     return new Engine("Negamax", depth, red ->
-            run(Negamax.problem(new ChessState(board, red), depth), depth));
+            run(Negamax.problem(new ChessState(board, red), depth), GameSearch::search, depth));
 }
 
 public static Engine alphaBeta(Board board, int depth) {
     return new Engine("Alpha-Beta", depth, red ->
-            run(AlphaBeta.problem(new ChessState(board, red), depth), depth));
+            run(AlphaBeta.problem(new ChessState(board, red), depth), GameSearch::search, depth));
 }
 
 public static Engine optimized(Board board, int depth, long budgetMs) {
@@ -1067,11 +1147,14 @@ public static Engine optimized(Board board, int depth, long budgetMs) {
     });
 }
 
-private static Result run(GameSearch.Problem<Move> problem, int depth) {   // kiểu giáo trình
-    GameSearch.Node<Move> root = GameSearch.search(problem);
+private static Result run(GameSearch.Problem<Move> problem,                // kiểu giáo trình
+        Function<GameSearch.Problem<Move>, GameSearch.Node<Move>> search, int depth) {
+    GameSearch.Node<Move> root = search.apply(problem);
     return new Result(root.bestAction(), root.value, depth, problem.visited());
 }
 ```
+
+Ba thuật toán thuần đi qua cùng hàm `run`, chỉ khác ở bài toán (`problem`) và hàm tìm kiếm truyền vào: `Minimax::search` cho Minimax, `GameSearch::search` cho Negamax và Alpha-Beta.
 
 `engine.generateMove(side)` gọi hàm tìm kiếm, ghi nhật ký (thuật toán, độ sâu đạt/độ sâu tối đa, điểm, số nút, thời gian) và trả về nước đi.
 
@@ -1082,34 +1165,36 @@ public Engine create(Board board, int level) {
     int lv = Math.max(1, level);
     return switch (this) {
         case OPTIMIZED  -> Engine.optimized(board, lv * 2, budget(lv));
+        case MINIMAX    -> Engine.minimax(board, lv);
         case NEGAMAX    -> Engine.negamax(board, lv);
         case ALPHA_BETA -> Engine.alphaBeta(board, lv + 2);
     };
 }
 ```
 
-| Cấp độ | `level` | Negamax (ply) | Alpha-Beta (ply) | Alpha-Beta cải tiến (ply / ngân sách) |
-|---|---|---|---|---|
-| Dễ | 2 | 2 | 4 | 4 / 1,5 giây |
-| Khó | 3 | 3 | 5 | 6 / 6 giây |
-| Cực khó | 4 | 4 | 6 | 8 / 24 giây |
+| Cấp độ | `level` | Minimax (ply) | Negamax (ply) | Alpha-Beta (ply) | Alpha-Beta cải tiến (ply / ngân sách) |
+|---|---|---|---|---|---|
+| Dễ | 2 | 2 | 2 | 4 | 4 / 1,5 giây |
+| Khó | 3 | 3 | 3 | 5 | 6 / 6 giây |
+| Cực khó | 4 | 4 | 4 | 6 | 8 / 24 giây |
 
 Độ sâu của mỗi thuật toán được chọn để một nước mất tối đa khoảng 1–2 giây trên máy tính (Chương 4). Với thuật toán cải tiến, mỗi cấp độ tăng 2 ply (một cặp nước của hai bên — đủ để "nhìn thấy" trọn một cuộc trao đổi quân) và nhân ngân sách lên 4 lần; ngân sách là **trần** chứ không phải mục tiêu — trong điều kiện bình thường engine đạt độ sâu tối đa sớm hơn nhiều, ngân sách chỉ phát huy tác dụng trên thiết bị chậm hoặc thế cờ phức tạp.
 
-## 3.10. Kiểm thử và kiểm chứng
+## 3.11. Kiểm thử và kiểm chứng
 
 Vì gói `chess` và lõi `ai` là Java thuần, chúng được biên dịch và chạy trực tiếp trên JVM máy tính (chỉ thay `android.util.Log` bằng một lớp giả không làm gì), dùng **đúng mã nguồn** của ứng dụng. Các kiểm tra được dùng trong suốt quá trình phát triển:
 
+- **Tương đương Minimax–Negamax:** Minimax và Negamax trả về cùng nước đi, cùng giá trị gốc và cùng số nút ở mọi độ sâu 1–4, trên cả thế khai cuộc và trung cuộc (mục 4.2).
 - **Tính đúng của Alpha-Beta:** Negamax và Alpha-Beta trả về cùng giá trị gốc ở mọi độ sâu, trên cả thế khai cuộc và trung cuộc (Chương 4).
 - **Số nút cố định:** số nút của Negamax và Alpha-Beta ở độ sâu 4 được dùng làm "vân tay" của bộ sinh nước — mọi thay đổi mã nguồn về luật chơi (tách lớp `Rules`, đổi mã quân sang `PieceCode`, …) đều phải giữ nguyên hai con số 3.371.871 và 26.289.
 - **Máy tự đánh với chính nó** 80 nước ở các cấp độ: sau mỗi lần tái cấu trúc thuật toán cải tiến, chuỗi nước đi và số nút từng nước phải trùng khớp với phiên bản trước.
 - **Luật lặp thế cờ:** hai quân Mã đi qua đi lại ba vòng phải được xử hoà ở lần lặp thứ ba, kể cả sau khi đi lại một nước.
 
-## 3.11. Giao diện ứng dụng (hình ảnh demo)
+## 3.12. Giao diện ứng dụng (hình ảnh demo)
 
-Các hình dưới đây chụp trên máy ảo Android 15 (độ phân giải 1440 × 3120), phần thanh trạng thái và dải quảng cáo thử nghiệm ở đầu màn hình chơi đã được cắt bỏ. Trong ứng dụng, thuật toán Alpha-Beta cải tiến mang tên **"Engine tối ưu"**; hai thuật toán còn lại là **"Negamax thuần"** và **"Alpha-Beta thuần"**.
+Các hình dưới đây chụp trên máy ảo Android 15 (độ phân giải 1440 × 3120), phần thanh trạng thái và dải quảng cáo thử nghiệm ở đầu màn hình chơi đã được cắt bỏ. Trong ứng dụng, thuật toán Alpha-Beta cải tiến mang tên **"Engine tối ưu"**; ba thuật toán còn lại là **"Minimax thuần"**, **"Negamax thuần"** và **"Alpha-Beta thuần"**.
 
-**Chọn thuật toán và cấp độ.** Màn hình chính (Hình 3.1) có bốn thẻ: *Máy (Đỏ)* — cấp độ của máy; *Bàn cờ* — bảng màu của bàn và quân; *Thuật toán*; *Lượt đi* — ai đi trước. Chạm vào thẻ *Thuật toán* mở hộp thoại chọn một trong ba thuật toán (Hình 3.2); chạm vào thẻ *Máy* mở hộp thoại chọn cấp độ (Hình 3.3). Lựa chọn được lưu lại và áp dụng từ ván sau.
+**Chọn thuật toán và cấp độ.** Màn hình chính (Hình 3.1) có bốn thẻ: *Máy (Đỏ)* — cấp độ của máy; *Bàn cờ* — bảng màu của bàn và quân; *Thuật toán*; *Lượt đi* — ai đi trước. Chạm vào thẻ *Thuật toán* mở hộp thoại chọn một trong bốn thuật toán (Hình 3.2); chạm vào thẻ *Máy* mở hộp thoại chọn cấp độ (Hình 3.3). Lựa chọn được lưu lại và áp dụng từ ván sau.
 
 | ![Màn hình chính](images/01_man_hinh_chinh.jpg) | ![Chọn thuật toán](images/02_chon_thuat_toan.jpg) | ![Chọn cấp độ](images/03_chon_cap_do.jpg) |
 |---|---|---|
@@ -1140,22 +1225,37 @@ Máy ảo chạy chậm hơn máy tính dùng ở Chương 4 khoảng 3–4 lầ
 
 ## 4.1. Môi trường thử nghiệm
 
-Các phép đo chạy trên máy tính Apple M4 Pro, JDK 21 (OpenJDK 21.0.7), dùng đúng mã nguồn của ứng dụng (mục 3.10). Hai thế cờ thử nghiệm:
+Các phép đo chạy trên máy tính Apple M4 Pro, JDK 21 (OpenJDK 21.0.7), dùng đúng mã nguồn của ứng dụng (mục 3.11). Hai thế cờ thử nghiệm:
 
 - **Khai cuộc:** thế cờ ban đầu, Đỏ đi, 32 quân, **44** nước hợp lệ.
 - **Trung cuộc:** thế cờ sau 20 nước đơn do Alpha-Beta thuần (độ sâu 4) tự chơi, Đỏ đi, 30 quân, **47** nước hợp lệ. Thế cờ này được sinh lại giống hệt ở mọi lần đo vì Alpha-Beta thuần là tất định.
 
 Cách đo:
 
-- Negamax và Alpha-Beta: mỗi phép đo chạy 3 lần trong cùng một JVM, lấy thời gian nhỏ nhất.
+- Minimax, Negamax và Alpha-Beta: mỗi phép đo chạy 3 lần trong cùng một JVM, lấy thời gian nhỏ nhất.
 - Alpha-Beta cải tiến: vì bảng chuyển vị được giữ giữa các lần tìm, mỗi phép đo chạy trong **một JVM mới** (bảng trống), lặp 3 lần, lấy thời gian nhỏ nhất. Thời gian ở độ sâu nhỏ vì vậy bao gồm cả chi phí "khởi động" của JVM (biên dịch JIT) và hơi bất lợi cho thuật toán cải tiến.
 - Số nút của thuật toán cải tiến là **tổng tích luỹ** của mọi lần lặp từ độ sâu 1 tới d, **bao gồm** cả nút của tìm kiếm tĩnh và của các nước bỏ lượt.
 
 *Lưu ý:* thời gian trên điện thoại chậm hơn máy tính vài lần; số nút duyệt thì không phụ thuộc thiết bị.
 
-## 4.2. Negamax và Alpha-Beta
+## 4.2. Minimax, Negamax và Alpha-Beta
 
-Để tách riêng tác dụng của cắt tỉa và của thứ tự nước đi, ngoài Negamax và Alpha-Beta còn đo thêm một biến thể **Alpha-Beta không sắp xếp** (các nước được xét theo thứ tự quét bàn cờ, không đưa nước ăn quân lên trước). Ba phiên bản dùng cùng hàm đánh giá, cùng bộ sinh nước, cùng vòng lặp `GameSearch`.
+**Minimax và Negamax.** Hai thuật toán được đo trong cùng một lần chạy, trên cùng `ChessState` (cùng bộ sinh nước, cùng thứ tự nước, cùng hàm đánh giá). Nước đi ghi theo toạ độ (hàng, cột):
+
+| Thế cờ | Độ sâu | Minimax (nút) | Negamax (nút) | Thời gian Minimax | Thời gian Negamax | Giá trị gốc (cả hai) | Nước chọn (cả hai) |
+|---|---|---|---|---|---|---|---|
+| Khai cuộc | 1 | 45 | 45 | < 1 ms | < 1 ms | 29 | Pháo (2,1) → (9,1) ăn Mã |
+| Khai cuộc | 2 | 1.965 | 1.965 | 2 ms | 1 ms | −16 | Mã (0,1) → (2,2) |
+| Khai cuộc | 3 | 81.631 | 81.631 | 29 ms | 29 ms | 29 | Mã (0,1) → (2,2) |
+| Khai cuộc | 4 | 3.371.871 | 3.371.871 | 800 ms | 815 ms | 0 | Mã (0,1) → (2,2) |
+| Trung cuộc | 1 | 48 | 48 | < 1 ms | < 1 ms | 30 | (5,4) → (8,4) |
+| Trung cuộc | 2 | 1.667 | 1.667 | < 1 ms | < 1 ms | −8 | (2,4) → (0,2) |
+| Trung cuộc | 3 | 78.794 | 78.794 | 27 ms | 28 ms | 21 | (0,7) → (7,7) |
+| Trung cuộc | 4 | 2.810.873 | 2.810.873 | 639 ms | 671 ms | −13 | (6,1) → (6,6) |
+
+Ở cả 8 phép đo, Minimax và Negamax trả về **cùng nước đi, cùng giá trị gốc và cùng số nút** — xác nhận bằng thực nghiệm kết luận của mục 2.3.2 rằng Negamax chỉ là cách viết gọn của Minimax. Thời gian của hai thuật toán chênh nhau trong phạm vi dao động đo (vài phần trăm): phần lớn chi phí nằm ở sinh nước và hàm đánh giá, không phải ở việc gọi một hàm hay hai hàm. Vì vậy trong phần còn lại của chương, số liệu của Negamax cũng là số liệu của Minimax.
+
+**Negamax và Alpha-Beta.** Để tách riêng tác dụng của cắt tỉa và của thứ tự nước đi, ngoài Negamax và Alpha-Beta còn đo thêm một biến thể **Alpha-Beta không sắp xếp** (các nước được xét theo thứ tự quét bàn cờ, không đưa nước ăn quân lên trước). Ba phiên bản dùng cùng hàm đánh giá, cùng bộ sinh nước, cùng vòng lặp `GameSearch`.
 
 **Thế cờ khai cuộc (b = 44):**
 
@@ -1241,18 +1341,18 @@ Cách đo:
 
 ## 4.5. Hiệu năng theo cấp độ
 
-Thời gian cho **một nước đi** ở từng cấp độ (độ sâu theo bảng ở mục 3.9):
+Thời gian cho **một nước đi** ở từng cấp độ (độ sâu theo bảng ở mục 3.10):
 
-| Cấp độ | Negamax | Alpha-Beta | Alpha-Beta cải tiến |
-|---|---|---|---|
-| Dễ — khai cuộc | 2 ms (d = 2) | 13 ms (d = 4) | 23 ms (d = 4) |
-| Dễ — trung cuộc | < 1 ms | 10 ms | 19 ms |
-| Khó — khai cuộc | 40 ms (d = 3) | 397 ms (d = 5) | 104 ms (d = 6) |
-| Khó — trung cuộc | 26 ms | 107 ms | 178 ms |
-| Cực khó — khai cuộc | 805 ms (d = 4) | 1.246 ms (d = 6) | 1.958 ms (d = 8) |
-| Cực khó — trung cuộc | 635 ms | 553 ms | 991 ms |
+| Cấp độ | Minimax | Negamax | Alpha-Beta | Alpha-Beta cải tiến |
+|---|---|---|---|---|
+| Dễ — khai cuộc | 2 ms (d = 2) | 2 ms (d = 2) | 13 ms (d = 4) | 23 ms (d = 4) |
+| Dễ — trung cuộc | < 1 ms | < 1 ms | 10 ms | 19 ms |
+| Khó — khai cuộc | 29 ms (d = 3) | 40 ms (d = 3) | 397 ms (d = 5) | 104 ms (d = 6) |
+| Khó — trung cuộc | 27 ms | 26 ms | 107 ms | 178 ms |
+| Cực khó — khai cuộc | 800 ms (d = 4) | 805 ms (d = 4) | 1.246 ms (d = 6) | 1.958 ms (d = 8) |
+| Cực khó — trung cuộc | 639 ms | 635 ms | 553 ms | 991 ms |
 
-Ở cả ba cấp độ, cả ba thuật toán đều trả lời trong khoảng 2 giây trên máy tính. Thuật toán cải tiến luôn **hoàn thành độ sâu tối đa** trong một phần nhỏ ngân sách thời gian (không quá 9%), để lại biên an toàn lớn cho điện thoại chậm hơn máy tính nhiều lần.
+Ở cả ba cấp độ, cả bốn thuật toán đều trả lời trong khoảng 2 giây trên máy tính. Thuật toán cải tiến luôn **hoàn thành độ sâu tối đa** trong một phần nhỏ ngân sách thời gian (không quá 9%), để lại biên an toàn lớn cho điện thoại chậm hơn máy tính nhiều lần.
 
 ## 4.6. Đấu thử giữa các thuật toán
 
@@ -1271,15 +1371,15 @@ Alpha-Beta cải tiến thắng cả 4 ván bằng chiếu bí, ở cả hai mà
 
 **Kết quả đạt được:**
 
-- Cài đặt thành công ba thuật toán trên **một khung tìm kiếm dùng chung**, tổ chức mã theo cùng cách với các bài thực hành của môn học: Negamax và Alpha-Beta chỉ khác nhau ở hàm cắt tỉa; Alpha-Beta cải tiến dùng lại đúng hàm cắt của Alpha-Beta và gắn thêm 8 kỹ thuật tại các điểm can thiệp rõ ràng.
-- Số liệu đo xác nhận lý thuyết: Negamax có số nút ≈ b^d; Alpha-Beta cho **cùng** kết quả và giảm số nút 128–150 lần ở độ sâu 4; thuật toán cải tiến có hệ số phân nhánh hiệu dụng 3,3–4,9 và đạt độ sâu 8 trong khoảng 1–2 giây.
+- Cài đặt thành công bốn thuật toán trên **một khung tìm kiếm dùng chung**, tổ chức mã theo cùng cách với các bài thực hành của môn học: Minimax dùng lại `Problem`/`Node` với hai hàm MAX/MIN riêng; Negamax và Alpha-Beta chỉ khác nhau ở hàm cắt tỉa; Alpha-Beta cải tiến dùng lại đúng hàm cắt của Alpha-Beta và gắn thêm 8 kỹ thuật tại các điểm can thiệp rõ ràng.
+- Số liệu đo xác nhận lý thuyết: Minimax và Negamax cho cùng nước đi, cùng giá trị và cùng số nút ≈ b^d; Alpha-Beta cho **cùng** kết quả và giảm số nút 128–150 lần ở độ sâu 4; thuật toán cải tiến có hệ số phân nhánh hiệu dụng 3,3–4,9 và đạt độ sâu 8 trong khoảng 1–2 giây.
 - AI tuân thủ đầy đủ luật cờ tướng (hết nước là thua, tướng không đối mặt, luật lặp thế cờ), trả lời trong thời gian chấp nhận được trên điện thoại, người chơi chọn được thuật toán và 3 cấp độ.
 - Luật cờ và lõi thuật toán là Java thuần, kiểm thử được trên máy tính bằng đúng mã nguồn của ứng dụng.
 
 **Hạn chế:**
 
 - Hàm đánh giá còn đơn giản (chủ yếu là bảng điểm theo ô), chưa xét tính cơ động, cấu trúc phòng thủ, quân bị ghim.
-- Negamax và Alpha-Beta thuần không phát hiện lặp thế cờ trong cây tìm kiếm, nên khi chơi thực tế có thể đi lặp và bị xử thua theo luật trường chiếu / trường bắt.
+- Minimax, Negamax và Alpha-Beta thuần không phát hiện lặp thế cờ trong cây tìm kiếm, nên khi chơi thực tế có thể đi lặp và bị xử thua theo luật trường chiếu / trường bắt.
 - Chưa có thư viện khai cuộc và cơ sở dữ liệu tàn cuộc; tìm kiếm chạy đơn luồng.
 - Null-move và cắt delta là các kỹ thuật cắt tỉa *không an toàn tuyệt đối* — trong một số thế hiếm có thể bỏ sót nước tốt.
 
@@ -1287,9 +1387,9 @@ Alpha-Beta cải tiến thắng cả 4 ván bằng chiếu bí, ở cả hai mà
 
 ## 5.1. Kết luận
 
-Đề tài đã nghiên cứu và áp dụng thuật toán **Negamax** — cách phát biểu gọn của Minimax dựa trên tính chất tổng bằng không — vào trò chơi Cờ Tướng trên nền tảng Android, dưới ba dạng: Negamax thuần, Alpha-Beta và Alpha-Beta cải tiến. Báo cáo đã chứng minh tính tương đương giữa Negamax và Minimax, trình bày cắt tỉa Alpha-Beta dưới dạng Negamax với cửa sổ đảo (−β, −α), và phân tích các bài toán phát sinh khi đưa thuật toán vào thực tế: hiệu ứng đường chân trời, thứ tự nước đi, trạng thái lặp, giới hạn thời gian, cắt tỉa tiến và zugzwang, khoảng cách chiếu hết, lặp thế cờ.
+Đề tài đã nghiên cứu và áp dụng thuật toán **Negamax** — cách phát biểu gọn của Minimax dựa trên tính chất tổng bằng không — vào trò chơi Cờ Tướng trên nền tảng Android, cùng với chính Minimax: bốn thuật toán Minimax, Negamax, Alpha-Beta và Alpha-Beta cải tiến. Báo cáo đã chứng minh tính tương đương giữa Negamax và Minimax — và kiểm chứng bằng thực nghiệm: hai thuật toán cho cùng nước đi, cùng giá trị và cùng số nút — trình bày cắt tỉa Alpha-Beta dưới dạng Negamax với cửa sổ đảo (−β, −α), và phân tích các bài toán phát sinh khi đưa thuật toán vào thực tế: hiệu ứng đường chân trời, thứ tự nước đi, trạng thái lặp, giới hạn thời gian, cắt tỉa tiến và zugzwang, khoảng cách chiếu hết, lặp thế cờ.
 
-Điểm mạnh của Negamax thể hiện rõ trong cài đặt: cả ba thuật toán xoay quanh **một** vòng lặp đệ quy duy nhất, và sự khác biệt giữa chúng trong mã nguồn đúng bằng sự khác biệt trong lý thuyết — Alpha-Beta khác Negamax đúng một hàm cắt tỉa; Alpha-Beta cải tiến khác Alpha-Beta ở các kỹ thuật gắn vào từng bước của vòng lặp. Số liệu thực nghiệm cho thấy cắt tỉa cùng thứ tự nước tốt giúp giảm số nút hơn 100 lần, và tổ hợp các kỹ thuật cải tiến giúp engine đạt độ sâu 8 ply trong khoảng 1–2 giây, đồng thời thắng Alpha-Beta thuần ở cùng độ sâu.
+Điểm mạnh của Negamax thể hiện rõ trong cài đặt: Minimax cần hai hàm cho hai loại nút, còn ba thuật toán dạng Negamax xoay quanh **một** vòng lặp đệ quy duy nhất, và sự khác biệt giữa chúng trong mã nguồn đúng bằng sự khác biệt trong lý thuyết — Alpha-Beta khác Negamax đúng một hàm cắt tỉa; Alpha-Beta cải tiến khác Alpha-Beta ở các kỹ thuật gắn vào từng bước của vòng lặp. Số liệu thực nghiệm cho thấy cắt tỉa cùng thứ tự nước tốt giúp giảm số nút hơn 100 lần, và tổ hợp các kỹ thuật cải tiến giúp engine đạt độ sâu 8 ply trong khoảng 1–2 giây, đồng thời thắng Alpha-Beta thuần ở cùng độ sâu.
 
 ## 5.2. Hướng phát triển
 
