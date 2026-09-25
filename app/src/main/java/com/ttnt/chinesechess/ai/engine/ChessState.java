@@ -3,6 +3,7 @@ package com.ttnt.chinesechess.ai.engine;
 import com.ttnt.chinesechess.ai.GameState;
 import com.ttnt.chinesechess.chess.Board;
 import com.ttnt.chinesechess.chess.Move;
+import com.ttnt.chinesechess.chess.PieceCode;
 import com.ttnt.chinesechess.chess.Rules;
 
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ public final class ChessState implements GameState<Move> {
     @Override
     public void play(Move move) {
         board.cell[move.to.x][move.to.y] = move.piece;
-        board.cell[move.from.x][move.from.y] = 0;
+        board.cell[move.from.x][move.from.y] = PieceCode.EMPTY;
         side = !side;
         ply++;
         version++;
