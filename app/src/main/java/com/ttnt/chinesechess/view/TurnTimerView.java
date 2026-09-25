@@ -1,4 +1,4 @@
-package com.ttnt.chinesechess.game;
+package com.ttnt.chinesechess.view;
 
 import android.content.Context;
 import android.graphics.Canvas;

@@ -1,21 +1,6 @@
 package com.ttnt.chinesechess.chess;
 
-import android.graphics.Point;
-
 public class CKing extends Piece {
-
-    static final int[][] KING_TABLE = {
-            {0, 0, 0, 0, 0, 0, 0, 0, 0}, /* KING */
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 0, 0, 0, 0, 0, 0},
-            {0, 0, 0, 1, 1, 1, 0, 0, 0},
-            {0, 0, 0, 15, 15, 15, 0, 0, 0},
-            {0, 0, 0, 30, 35, 30, 0, 0, 0}
-    };
 
     public CKing(Board board, Point currMove) {
         super(board, currMove);
@@ -32,10 +17,10 @@ public class CKing extends Piece {
         for (int i = 0; i < dx.length; i++) {
             int x = currMove.x + dx[i];
             int y = currMove.y + dy[i];
-            if (x >= 0 && x <= 9 && y >= 0 && y <= 8) {
+            if (Board.inPalace(x, y, red)) {
                 byte piece = board.cell[currMove.x][currMove.y];
                 byte occupant = board.cell[x][y];
-                if (((red && ((occupant >= 8 && occupant <= 14) || occupant == 0) && x <= 2) || (!red && (occupant > 14 || occupant == 0) && x >= 7)) && (y >= 3 && y <= 5)) {
+                if (canLandOn(occupant)) {
                     offer(x, y, piece, occupant);
                 }
             }
