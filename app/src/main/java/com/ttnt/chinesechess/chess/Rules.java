@@ -257,7 +257,7 @@ public final class Rules {
         byte from = cell[capture.from.x][capture.from.y];
         byte to = cell[capture.to.x][capture.to.y];
         cell[capture.to.x][capture.to.y] = from;
-        cell[capture.from.x][capture.from.y] = 0;
+        cell[capture.from.x][capture.from.y] = PieceCode.EMPTY;
 
         boolean answered = false;
         for (Move reply : allMoves(board, !mover)) {

@@ -187,7 +187,7 @@ public class Board {
         Move played = new Move(prevMove, currMove, piece, captured);
         listUndo.add(played);
         cell[x][y] = piece;
-        cell[prevMove.x][prevMove.y] = 0;
+        cell[prevMove.x][prevMove.y] = PieceCode.EMPTY;
         select = false;
         move = true;
 

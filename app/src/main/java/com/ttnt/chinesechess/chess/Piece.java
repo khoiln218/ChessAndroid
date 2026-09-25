@@ -99,7 +99,7 @@ public abstract class Piece {
 
     protected void doMove(int x, int y) {
         board.cell[x][y] = board.cell[currMove.x][currMove.y];
-        board.cell[currMove.x][currMove.y] = 0;
+        board.cell[currMove.x][currMove.y] = PieceCode.EMPTY;
     }
 
     protected void reMove(int x, int y, byte value) {
