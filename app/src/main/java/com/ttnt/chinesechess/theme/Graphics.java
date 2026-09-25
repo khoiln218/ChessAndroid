@@ -1,4 +1,4 @@
-package com.ttnt.chinesechess.graph;
+package com.ttnt.chinesechess.theme;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -9,7 +9,6 @@ import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.Point;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -17,7 +16,9 @@ import android.graphics.Shader;
 import android.graphics.Typeface;
 
 import com.ttnt.chinesechess.R;
-import com.ttnt.chinesechess.chess.State;
+import com.ttnt.chinesechess.chess.Move;
+import com.ttnt.chinesechess.chess.PieceCode;
+import com.ttnt.chinesechess.chess.Point;
 
 import java.util.ArrayList;
 
@@ -98,7 +99,10 @@ public class Graphics {
 
     /** Kept so the pieces can be redrawn when the size or the theme changes. */
     private final Resources res;
-    /** Indexed by {@code cell value - 8}: black general..soldier, then red general..soldier. */
+    /**
+     * Indexed by {@code cell value - PieceCode.BLACK_KING}: black general..soldier, then red
+     * general..soldier.
+     */
     private Bitmap[] pieces;
     private final Bitmap imageSelected;
     private final Bitmap imageMoveDot;
@@ -368,8 +372,9 @@ public class Graphics {
         for (int i = 0; i < ROW; i++)
             for (int j = 0; j < COL; j++) {
                 byte piece = cell[i][j];
-                if (piece == 0 || (skip != null && skip.x == i && skip.y == j)) continue;
-                drawIfVisible(canvas, pieces[piece - 8], pieceRect(i, j));
+                if (piece == PieceCode.EMPTY) continue;
+                if (skip != null && skip.x == i && skip.y == j) continue;
+                drawIfVisible(canvas, pieces[piece - PieceCode.BLACK_KING], pieceRect(i, j));
             }
     }
 
@@ -396,7 +401,7 @@ public class Graphics {
         float half = SIZE * (1f + 0.12f * (float) Math.sin(Math.PI * t));
         cellRect.set(Math.round(x - half), Math.round(y - half),
                 Math.round(x + half), Math.round(y + half));
-        canvas.drawBitmap(pieces[piece - 8], null, cellRect, paint);
+        canvas.drawBitmap(pieces[piece - PieceCode.BLACK_KING], null, cellRect, paint);
     }
 
     public void drawSelect(Canvas canvas, Point pos) {
@@ -405,11 +410,11 @@ public class Graphics {
     }
 
     /** A green dot on empty targets, a red capture frame where an enemy piece can be taken. */
-    public void drawAllPossibleMove(Canvas canvas, ArrayList<State> possibleMove, byte[][] cell) {
+    public void drawAllPossibleMove(Canvas canvas, ArrayList<Move> possibleMove, byte[][] cell) {
         takeClip(canvas);
-        for (State state : possibleMove) {
-            Point target = state.to;
-            boolean empty = cell[target.x][target.y] == 0;
+        for (Move move : possibleMove) {
+            Point target = move.to;
+            boolean empty = cell[target.x][target.y] == PieceCode.EMPTY;
             drawIfVisible(canvas, empty ? imageMoveDot : imageCapture,
                     markRect(target, empty ? DOT_SIZE : CAPTURE_SIZE));
         }

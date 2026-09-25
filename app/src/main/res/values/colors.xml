@@ -34,6 +34,4 @@
     <color name="timerOk">#2E7D32</color>
     <color name="timerWarn">#E08A00</color>
     <color name="timerDanger">#B3261E</color>
-
-    <color name="adBackground">#14000000</color>
 </resources>

@@ -1,21 +1,6 @@
 package com.ttnt.chinesechess.chess;
 
-import android.graphics.Point;
-
 public class CCannon extends Piece {
-
-    static final int[][] CANNON_TABLE = {
-            {50, 50, 50, 50, 50, 50, 50, 50, 50}, /* CANNON */
-            {50, 51, 50, 50, 50, 50, 50, 51, 50},
-            {50, 51, 50, 50, 50, 50, 50, 51, 50},
-            {50, 51, 50, 50, 50, 50, 50, 51, 50},
-            {50, 51, 50, 50, 50, 50, 50, 51, 50},
-            {50, 51, 51, 51, 51, 51, 51, 51, 50},
-            {50, 51, 50, 50, 50, 50, 50, 51, 50},
-            {50, 51, 53, 53, 55, 53, 53, 51, 50},
-            {50, 50, 50, 50, 50, 50, 50, 50, 50},
-            {50, 50, 50, 50, 50, 50, 50, 50, 50}
-    };
 
     public CCannon(Board board, Point currMove) {
         super(board, currMove);
@@ -29,7 +14,7 @@ public class CCannon extends Piece {
     void generate() {
         int x = currMove.x;
         int y = currMove.y;
-        for (int i = y + 1; i <= 8; i++) {
+        for (int i = y + 1; i < Board.COL; i++) {
             if (rayStopsAt(x, i)) {
                 break;
             }
@@ -39,7 +24,7 @@ public class CCannon extends Piece {
                 break;
             }
         }
-        for (int i = x + 1; i <= 9; i++) {
+        for (int i = x + 1; i < Board.ROW; i++) {
             if (rayStopsAt(i, y)) {
                 break;
             }
@@ -62,12 +47,12 @@ public class CCannon extends Piece {
     private boolean rayStopsAt(int x, int y) {
         byte piece = board.cell[currMove.x][currMove.y];
         byte occupant = board.cell[x][y];
-        if (occupant == 0) {
+        if (occupant == PieceCode.EMPTY) {
             offer(x, y, piece, occupant);
         } else {
             if (currMove.x == x) {
                 if (y > currMove.y) {
-                    for (y = y + 1; y <= 8; y++) {
+                    for (y = y + 1; y < Board.COL; y++) {
                         if (shotStopsAt(x, y)) {
                             break;
                         }
@@ -81,7 +66,7 @@ public class CCannon extends Piece {
                 }
             } else {
                 if (x > currMove.x) {
-                    for (x = x + 1; x <= 9; x++) {
+                    for (x = x + 1; x < Board.ROW; x++) {
                         if (shotStopsAt(x, y)) {
                             break;
                         }
@@ -109,8 +94,8 @@ public class CCannon extends Piece {
     private boolean shotStopsAt(int x, int y) {
         byte piece = board.cell[currMove.x][currMove.y];
         byte occupant = board.cell[x][y];
-        if (occupant != 0) {
-            if ((red && occupant <= 14) || (!red && occupant > 14)) {
+        if (occupant != PieceCode.EMPTY) {
+            if (canLandOn(occupant)) {
                 offer(x, y, piece, occupant);
             }
             return true;

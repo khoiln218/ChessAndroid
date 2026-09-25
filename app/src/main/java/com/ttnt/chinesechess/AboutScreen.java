@@ -4,9 +4,9 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.ttnt.chinesechess.graph.PieceArt;
+import com.ttnt.chinesechess.theme.PieceArt;
 
-public class About extends AppCompatActivity {
+public class AboutScreen extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

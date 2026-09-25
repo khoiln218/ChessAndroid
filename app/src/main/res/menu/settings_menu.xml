@@ -7,11 +7,6 @@
         android:title="@string/level_label" />
 
     <item
-        android:id="@+id/action_turn"
-        android:icon="@drawable/ic_turn"
-        android:title="@string/turn_label" />
-
-    <item
         android:id="@+id/action_theme"
         android:icon="@drawable/ic_theme"
         android:title="@string/theme_label" />

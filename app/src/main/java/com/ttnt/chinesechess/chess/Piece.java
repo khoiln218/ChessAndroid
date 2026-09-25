@@ -1,7 +1,5 @@
 package com.ttnt.chinesechess.chess;
 
-import android.graphics.Point;
-
 import java.util.ArrayList;
 
 /**
@@ -19,7 +17,7 @@ public abstract class Piece {
     final Point currMove;
     Board board;
     public boolean red;
-    ArrayList<State> allPossibleMove;
+    ArrayList<Move> allPossibleMove;
 
     /** Skip quiet moves. The quiescence search resolves captures and wants nothing else. */
     boolean capturesOnly;
@@ -33,7 +31,7 @@ public abstract class Piece {
     public Piece(Board board, Point currMove) {
         this.board = board;
         this.currMove = new Point(currMove);
-        this.red = board.cell[currMove.x][currMove.y] > 14;
+        this.red = PieceCode.isRed(board.cell[currMove.x][currMove.y]);
         allPossibleMove = null;
     }
 
@@ -47,13 +45,18 @@ public abstract class Piece {
     void at(int x, int y) {
         currMove.x = x;
         currMove.y = y;
-        red = board.cell[x][y] > 14;
+        red = PieceCode.isRed(board.cell[x][y]);
+    }
+
+    /** Whether this piece may land on a square holding {@code occupant}: empty, or the enemy's. */
+    boolean canLandOn(byte occupant) {
+        return occupant == PieceCode.EMPTY || PieceCode.isRed(occupant) != red;
     }
 
     /** Appends this piece's moves to {@link #allPossibleMove}, under the flags as they stand. */
     abstract void generate();
 
-    public ArrayList<State> findAllPossibleMoves() {
+    public ArrayList<Move> findAllPossibleMoves() {
         allPossibleMove = new ArrayList<>();
         capturesOnly = false;
         legalOnly = true;
@@ -67,14 +70,14 @@ public abstract class Piece {
      * depend on the board being left in any particular way.
      */
     void offer(int x, int y, byte piece, byte captured) {
-        if (capturesOnly && captured == 0) return;
+        if (capturesOnly && captured == PieceCode.EMPTY) return;
         if (legalOnly) {
             doMove(x, y);
-            boolean safe = board.kingSafe(red);
+            boolean safe = Rules.kingSafe(board, red);
             reMove(x, y, captured);
             if (!safe) return;
         }
-        allPossibleMove.add(new State(currMove, x, y, piece, captured));
+        allPossibleMove.add(new Move(currMove, x, y, piece, captured));
     }
 
     public boolean checkMove(int x, int y) {

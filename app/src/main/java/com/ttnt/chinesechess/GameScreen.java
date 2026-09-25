@@ -3,7 +3,6 @@ package com.ttnt.chinesechess;
 import android.content.res.ColorStateList;
 import android.content.res.TypedArray;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -35,11 +34,12 @@ import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
 import com.ttnt.chinesechess.chess.Board;
-import com.ttnt.chinesechess.chess.State;
-import com.ttnt.chinesechess.game.ChineseChessGame;
-import com.ttnt.chinesechess.game.TurnTimerView;
-import com.ttnt.chinesechess.graph.BoardTheme;
-import com.ttnt.chinesechess.graph.PieceArt;
+import com.ttnt.chinesechess.chess.Move;
+import com.ttnt.chinesechess.chess.Point;
+import com.ttnt.chinesechess.theme.BoardTheme;
+import com.ttnt.chinesechess.theme.PieceArt;
+import com.ttnt.chinesechess.view.GameView;
+import com.ttnt.chinesechess.view.TurnTimerView;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -47,7 +47,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Locale;
 
-public class Game extends AppCompatActivity implements ChineseChessGame.Listener {
+public class GameScreen extends AppCompatActivity implements GameView.Listener {
 
     /**
      * Set when the lobby is carrying on the saved game rather than starting a fresh one.
@@ -60,7 +60,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
     private static final long TURN_MILLIS = 3 * 60 * 1000L;
     private static final long TICK_MILLIS = 100L;
 
-    ChineseChessGame game;
+    GameView game;
 
     private final Handler clock = new Handler(Looper.getMainLooper());
     private AdView adView;
@@ -108,10 +108,10 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         int levelGame = Settings.level(this);
 
         if (resume) {
-            game = new ChineseChessGame(this, levelGame, true);
+            game = new GameView(this, levelGame, true);
             loadGame();
         } else {
-            game = new ChineseChessGame(this, levelGame, Settings.playerFirst(this));
+            game = new GameView(this, levelGame, Settings.playerFirst(this));
         }
 
         setUpAds();
@@ -201,9 +201,10 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
     }
 
     /**
-     * Everything the lobby lets you set, gathered on the machine's own card: how hard it plays,
-     * whether it opens, and what the board is made of. All three are remembered, so what is
-     * chosen here is what the lobby shows next time.
+     * What can still change once the game is under way, gathered on the machine's own card: how
+     * hard it plays and what the board is made of. Both are remembered, so what is chosen here is
+     * what the lobby shows next time. Which side opens and which algorithm plays are settled in
+     * the lobby, before the game starts.
      */
     private void showSettingsMenu(View anchor) {
         PopupMenu popup = new PopupMenu(this, anchor);
@@ -216,10 +217,6 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
             int id = item.getItemId();
             if (id == R.id.action_level) {
                 openLevelDialog();
-                return true;
-            }
-            if (id == R.id.action_turn) {
-                openTurnDialog();
                 return true;
             }
             if (id == R.id.action_theme) {
@@ -243,16 +240,6 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
                     game.setLevel(level);
                     showLevel(level);
                 });
-    }
-
-    /**
-     * Which side opens cannot change a game already under way; it takes the next one.
-     */
-    private void openTurnDialog() {
-        ChoiceDialog.show(this, R.string.turn_title,
-                getResources().getTextArray(R.array.select),
-                Settings.playerFirst(this) ? 0 : 1,
-                i -> Settings.savePlayerFirst(this, i == 0));
     }
 
     /**
@@ -332,7 +319,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
     }
 
     @Override
-    public void onGameOver(boolean playerWon, ChineseChessGame.End how) {
+    public void onGameOver(boolean playerWon, GameView.End how) {
         stopClock();
         thinking = false;
         computerTimer.setThinking(false);
@@ -346,7 +333,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
     /**
      * The end-of-game card: who won, why, and the two ways out of the finished board.
      */
-    private void showResultDialog(boolean playerWon, ChineseChessGame.End how) {
+    private void showResultDialog(boolean playerWon, GameView.End how) {
         if (isFinishing() || (resultDialog != null && resultDialog.isShowing())) return;
 
         View content = getLayoutInflater().inflate(R.layout.dialog_result, null);
@@ -354,7 +341,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
         TextView title = content.findViewById(R.id.result_title);
         TextView message = content.findViewById(R.id.result_message);
 
-        boolean draw = how == ChineseChessGame.End.REPETITION_DRAW;
+        boolean draw = how == GameView.End.REPETITION_DRAW;
         // The winner's general fronts the card, in the material the set is currently made of.
         // A draw has no winner, so the player's own general stands there instead.
         dressAvatar(avatar, Settings.theme(this), !draw && !playerWon);
@@ -609,7 +596,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
     public void undoGame() {
         if (game.board.listUndo.size() > 1) {
             //undo your move
-            State pos = game.board.listUndo.get(game.board.listUndo.size() - 1);
+            Move pos = game.board.listUndo.get(game.board.listUndo.size() - 1);
             game.board.listUndo.remove(game.board.listUndo.size() - 1);
             game.board.prevMove = pos.from;
             game.board.currMove = pos.to;
@@ -630,7 +617,7 @@ public class Game extends AppCompatActivity implements ChineseChessGame.Listener
             if (game.board.listUndo.isEmpty()) {
                 game.clearLastMove();
             } else {
-                State last = game.board.listUndo.get(game.board.listUndo.size() - 1);
+                Move last = game.board.listUndo.get(game.board.listUndo.size() - 1);
                 game.showLastMove(last.from, last.to);
             }
             //reset result

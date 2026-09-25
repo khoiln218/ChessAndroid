@@ -1,4 +1,4 @@
-package com.ttnt.chinesechess.graph;
+package com.ttnt.chinesechess.theme;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;

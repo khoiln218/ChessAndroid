@@ -1,9 +1,8 @@
-package com.ttnt.chinesechess.game;
+package com.ttnt.chinesechess.view;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.os.Looper;
@@ -13,23 +12,29 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 
-import com.ttnt.chinesechess.chess.Board;
-import com.ttnt.chinesechess.chess.State;
 import com.ttnt.chinesechess.Settings;
-import com.ttnt.chinesechess.chess.AI;
-import com.ttnt.chinesechess.graph.BoardTheme;
-import com.ttnt.chinesechess.graph.Graphics;
+import com.ttnt.chinesechess.ai.engine.Algorithm;
+import com.ttnt.chinesechess.ai.engine.Engine;
+import com.ttnt.chinesechess.chess.Board;
+import com.ttnt.chinesechess.chess.Move;
+import com.ttnt.chinesechess.chess.MoveRecord;
+import com.ttnt.chinesechess.chess.Point;
+import com.ttnt.chinesechess.chess.Rules;
+import com.ttnt.chinesechess.theme.BoardTheme;
+import com.ttnt.chinesechess.theme.Graphics;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @SuppressLint("ViewConstructor")
-public class ChineseChessGame extends View {
+public class GameView extends View {
     /**
      * Replaced when the strength is changed mid-game, which is read on the search thread, so the
      * two threads have to agree on which one they are looking at.
      */
-    volatile AI ai;
+    volatile Engine ai;
+    private int level;
+    private final Algorithm algorithm;
     Graphics graph;
     public Board board;
     public boolean isGameOver;
@@ -75,12 +80,14 @@ public class ChineseChessGame extends View {
         void onGameOver(boolean playerWon, End how);
     }
 
-    public ChineseChessGame(Context context, int level, boolean turn) {
+    public GameView(Context context, int level, boolean turn) {
         super(context);
         this.turn = turn;
         graph = new Graphics(getResources(), Settings.theme(context));
         board = new Board(!turn);
-        ai = new AI(board, level);
+        this.level = level;
+        algorithm = Settings.algorithm(context);
+        ai = algorithm.create(board, level);
         setFocusable(true);
         setFocusableInTouchMode(true);
     }
@@ -101,7 +108,8 @@ public class ChineseChessGame extends View {
      * produce a move anyway.
      */
     public void setLevel(int level) {
-        ai = new AI(board, level);
+        this.level = level;
+        ai = algorithm.create(board, level);
     }
 
     /**
@@ -219,9 +227,9 @@ public class ChineseChessGame extends View {
             postInvalidateOnAnimation(animDirty.left, animDirty.top,
                     animDirty.right, animDirty.bottom);
         }
-        if (board.isCheckSelect(board.prevMove.x, board.prevMove.y) && board.select) {
+        if (Rules.canSelect(board, board.prevMove.x, board.prevMove.y) && board.select) {
             graph.drawSelect(canvas, board.prevMove);
-            graph.drawAllPossibleMove(canvas, board.allMove(board.prevMove), board.cell);
+            graph.drawAllPossibleMove(canvas, Rules.movesFrom(board, board.prevMove), board.cell);
         }
     }
 
@@ -246,9 +254,9 @@ public class ChineseChessGame extends View {
                 if (x < 0 || x >= Graphics.ROW || y < 0 || y >= Graphics.COL)
                     return false;
 
-                if (board.isCheckSelect(x, y)) {
+                if (Rules.canSelect(board, x, y)) {
                     select(x, y);
-                } else if (board.isCheckMove(x, y)) {
+                } else if (Rules.canMoveTo(board, x, y)) {
                     move(x, y);
                 } else {
                     return false;
@@ -279,12 +287,12 @@ public class ChineseChessGame extends View {
     public void switchPlayer() {
         final int started = generation;
         executor.execute(() -> {
-            final boolean mated = board.hasLost(board.redToMove) || board.hasLost(!board.redToMove);
+            final boolean mated = Rules.hasLost(board, board.redToMove) || Rules.hasLost(board, !board.redToMove);
             // Judged on the board the move just landed on, before either side is put on the clock.
-            final Board.Repeat repeat = mated ? Board.Repeat.NONE : board.judgeRepetition();
+            final Rules.Repeat repeat = mated ? Rules.Repeat.NONE : Rules.judgeRepetition(board.history);
             mainHandler.post(() -> {
                 if (started != generation) return;
-                isGameOver = mated || repeat != Board.Repeat.NONE;
+                isGameOver = mated || repeat != Rules.Repeat.NONE;
                 if (!isGameOver) {
                     beginTurn();
                     return;
@@ -309,10 +317,10 @@ public class ChineseChessGame extends View {
         int checks = 0;
         int moves = 0;
         for (int i = board.history.size() - 1; i >= 0 && moves < 6; i--) {
-            Board.Ply ply = board.history.get(i);
-            if (ply.redMoved != redGuilty) continue;
+            MoveRecord record = board.history.get(i);
+            if (record.redMoved != redGuilty) continue;
             moves++;
-            if (ply.gaveCheck) checks++;
+            if (record.gaveCheck) checks++;
         }
         return checks == moves ? End.PERPETUAL_CHECK : End.PERPETUAL_CHASE;
     }
@@ -323,7 +331,7 @@ public class ChineseChessGame extends View {
         }
         final int started = generation;
         executor.execute(() -> {
-            final State pos = ai.generateMove(board.redToMove);
+            final Move pos = ai.generateMove(board.redToMove);
             mainHandler.post(() -> {
                 if (started != generation) return;
                 if (listener != null) {

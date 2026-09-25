@@ -102,7 +102,7 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Black's seat: the player -->
+        <!-- What the board is made of -->
         <LinearLayout
             android:id="@+id/theme_button"
             android:layout_width="match_parent"
@@ -113,22 +113,14 @@
             android:foreground="?attr/selectableItemBackground"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingStart="12dp"
-            android:paddingTop="12dp"
+            android:paddingStart="24dp"
+            android:paddingTop="14dp"
             android:paddingEnd="16dp"
-            android:paddingBottom="12dp">
-
-            <ImageView
-                android:id="@+id/lobby_player_avatar"
-                android:layout_width="52dp"
-                android:layout_height="52dp"
-                android:padding="5dp"
-                tools:ignore="ContentDescription" />
+            android:paddingBottom="14dp">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
                 android:layout_weight="1"
                 android:orientation="vertical">
 
@@ -136,7 +128,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:letterSpacing="0.02"
-                    android:text="@string/player_label"
+                    android:text="@string/theme_label"
                     android:textColor="@color/sideBlack"
                     android:textSize="17sp"
                     android:textStyle="bold" />
@@ -145,7 +137,56 @@
                     android:id="@+id/lobby_theme_value"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/theme_label"
+                    android:text="@string/theme_moc"
+                    android:textColor="@color/textMuted"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/lobby_change"
+                android:textColor="@color/gold"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- How the machine searches: the full engine, or one of the two textbook algorithms -->
+        <LinearLayout
+            android:id="@+id/algorithm_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_side_card_idle"
+            android:elevation="3dp"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="24dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="14dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.02"
+                    android:text="@string/algorithm_label"
+                    android:textColor="@color/sideBlack"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/lobby_algorithm_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/algorithm_engine"
                     android:textColor="@color/textMuted"
                     android:textSize="13sp" />
             </LinearLayout>
