@@ -1,24 +1,123 @@
 <!-- cover -->
-**HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG**
 
-**KHOA CÔNG NGHỆ THÔNG TIN**
+BỘ KHOA HỌC VÀ CÔNG NGHỆ
 
-# BÁO CÁO MÔN HỌC: TRÍ TUỆ NHÂN TẠO
+HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG
 
-**Đề tài: CỜ TƯỚNG AI — MINIMAX, NEGAMAX, ALPHA-BETA VÀ ALPHA-BETA CẢI TIẾN**
+---
 
-| | |
-|---|---|
-| Giảng viên hướng dẫn | [Họ tên giảng viên] |
-| Sinh viên thực hiện | [Họ tên sinh viên] |
-| Mã sinh viên | [Mã sinh viên] |
-| Lớp | [Lớp] — Nhóm [..] |
-| Học kỳ | Học kỳ 5 |
+![Logo Học viện Công nghệ Bưu chính Viễn thông](images/logo_hoc_vien_ptit.png)
 
-*[Địa điểm], tháng 9 năm 2026*
+# BÁO CÁO<br>ĐỒ ÁN MÔN HỌC
+
+MÔN HỌC: TRÍ TUỆ NHÂN TẠO
+
+ĐỀ TÀI: CỜ TƯỚNG AI — MINIMAX, NEGAMAX, ALPHA-BETA VÀ ALPHA-BETA CẢI TIẾN
+
+**Giảng viên hướng dẫn:** Nguyễn Thị Tuyết Hải
+
+**Thực hiện bởi nhóm B24DTCN057, bao gồm:**
+
+| STT | Họ và tên | MSSV | Lớp SV | Vai trò |
+| --- | --- | --- | --- | --- |
+| 1. | Lê Ngọc Khôi | B24DTCN061 | D24TXCN06-B | Trưởng nhóm |
+| 2. | Phạm Tuấn Anh | B24DTCN057 | D24TXCN06-B | Thành viên |
+| 3. | Phạm Phước Hòa | B24DTCN060 | D24TXCN06-B | Thành viên |
+
+TP.HCM, tháng 10/2026
+
 <!-- /cover -->
 
 <!-- toc -->
+
+**MỤC LỤC**
+
+- [**LỜI MỞ ĐẦU**](#lời-mở-đầu)
+- [**CHƯƠNG 1. TỔNG QUAN ĐỀ TÀI**](#chương-1-tổng-quan-đề-tài)
+  - [1.1. Giới thiệu trò chơi Cờ Tướng](#11-giới-thiệu-trò-chơi-cờ-tướng)
+  - [1.2. Mô hình hoá Cờ Tướng thành bài toán Trí tuệ nhân tạo](#12-mô-hình-hoá-cờ-tướng-thành-bài-toán-trí-tuệ-nhân-tạo)
+  - [1.3. Độ phức tạp của bài toán](#13-độ-phức-tạp-của-bài-toán)
+  - [1.4. Mục tiêu và phạm vi đề tài](#14-mục-tiêu-và-phạm-vi-đề-tài)
+- [**CHƯƠNG 2. CƠ SỞ LÝ THUYẾT**](#chương-2-cơ-sở-lý-thuyết)
+  - [2.1. Bài toán tìm kiếm đối kháng](#21-bài-toán-tìm-kiếm-đối-kháng)
+  - [2.2. Thuật toán Minimax](#22-thuật-toán-minimax)
+    - [2.2.1. Ý tưởng](#221-ý-tưởng)
+    - [2.2.2. Giả mã](#222-giả-mã)
+    - [2.2.3. Ví dụ minh hoạ](#223-ví-dụ-minh-hoạ)
+    - [2.2.4. Đánh giá](#224-đánh-giá)
+  - [2.3. Thuật toán Negamax](#23-thuật-toán-negamax)
+    - [2.3.1. Bài toán đặt ra](#231-bài-toán-đặt-ra)
+    - [2.3.2. Cơ sở toán học](#232-cơ-sở-toán-học)
+    - [2.3.3. Giả mã](#233-giả-mã)
+    - [2.3.4. Ví dụ minh hoạ](#234-ví-dụ-minh-hoạ)
+    - [2.3.5. Ưu điểm và điều kiện áp dụng](#235-ưu-điểm-và-điều-kiện-áp-dụng)
+  - [2.4. Cắt tỉa Alpha-Beta dạng Negamax](#24-cắt-tỉa-alpha-beta-dạng-negamax)
+    - [2.4.1. Bài toán đặt ra](#241-bài-toán-đặt-ra)
+    - [2.4.2. Ý tưởng](#242-ý-tưởng)
+    - [2.4.3. Giả mã](#243-giả-mã)
+    - [2.4.4. Ví dụ minh hoạ từng bước](#244-ví-dụ-minh-hoạ-từng-bước)
+    - [2.4.5. Độ phức tạp](#245-độ-phức-tạp)
+  - [2.5. Hàm đánh giá tĩnh](#25-hàm-đánh-giá-tĩnh)
+  - [2.6. Alpha-Beta cải tiến: các bài toán khi áp dụng vào thực tế và kỹ thuật giải quyết](#26-alpha-beta-cải-tiến-các-bài-toán-khi-áp-dụng-vào-thực-tế-và-kỹ-thuật-giải-quyết)
+    - [2.6.1. Hiệu ứng đường chân trời → Tìm kiếm tĩnh (Quiescence Search)](#261-hiệu-ứng-đường-chân-trời--tìm-kiếm-tĩnh-quiescence-search)
+    - [2.6.2. Thứ tự nước đi → MVV-LVA, nước sát thủ, heuristic lịch sử, nước từ bảng băm](#262-thứ-tự-nước-đi--mvv-lva-nước-sát-thủ-heuristic-lịch-sử-nước-từ-bảng-băm)
+    - [2.6.3. Trạng thái lặp lại (transposition) → Bảng chuyển vị với khoá Zobrist](#263-trạng-thái-lặp-lại-transposition--bảng-chuyển-vị-với-khoá-zobrist)
+    - [2.6.4. Giới hạn thời gian → Tìm kiếm sâu dần (Iterative Deepening)](#264-giới-hạn-thời-gian--tìm-kiếm-sâu-dần-iterative-deepening)
+    - [2.6.5. Cắt tỉa tiến → Null-move Pruning và bài toán Zugzwang](#265-cắt-tỉa-tiến--null-move-pruning-và-bài-toán-zugzwang)
+    - [2.6.6. Chọn đường chiếu hết ngắn nhất → Điểm chiếu hết theo khoảng cách](#266-chọn-đường-chiếu-hết-ngắn-nhất--điểm-chiếu-hết-theo-khoảng-cách)
+    - [2.6.7. Lặp thế cờ, chiếu mãi → Phát hiện lặp trong cây tìm kiếm](#267-lặp-thế-cờ-chiếu-mãi--phát-hiện-lặp-trong-cây-tìm-kiếm)
+- [**CHƯƠNG 3. THIẾT KẾ VÀ CÀI ĐẶT**](#chương-3-thiết-kế-và-cài-đặt)
+  - [3.1. Kiến trúc tổng thể](#31-kiến-trúc-tổng-thể)
+    - [3.1.1. Các gói và vai trò](#311-các-gói-và-vai-trò)
+    - [3.1.2. Luồng một lượt của máy](#312-luồng-một-lượt-của-máy)
+  - [3.2. Biểu diễn bàn cờ và nước đi](#32-biểu-diễn-bàn-cờ-và-nước-đi)
+  - [3.3. Luật chơi (`Rules`)](#33-luật-chơi-rules)
+  - [3.4. Hàm đánh giá (`Evaluation`)](#34-hàm-đánh-giá-evaluation)
+  - [3.5. Khung tìm kiếm dùng chung](#35-khung-tìm-kiếm-dùng-chung)
+    - [3.5.1. Ý tưởng thiết kế](#351-ý-tưởng-thiết-kế)
+    - [3.5.2. Giao diện trò chơi `GameState`](#352-giao-diện-trò-chơi-gamestate)
+    - [3.5.3. Thuật toán dùng chung `GameSearch`](#353-thuật-toán-dùng-chung-gamesearch)
+  - [3.6. Thuật toán Minimax](#36-thuật-toán-minimax)
+    - [3.6.1. Cài đặt](#361-cài-đặt)
+    - [3.6.2. Quan hệ với khung dùng chung](#362-quan-hệ-với-khung-dùng-chung)
+    - [3.6.3. Ví dụ và kiểm chứng tương đương với Negamax](#363-ví-dụ-và-kiểm-chứng-tương-đương-với-negamax)
+  - [3.7. Thuật toán Negamax](#37-thuật-toán-negamax)
+    - [3.7.1. Cài đặt](#371-cài-đặt)
+    - [3.7.2. Trạng thái cờ tướng cho thuật toán thuần: `ChessState`](#372-trạng-thái-cờ-tướng-cho-thuật-toán-thuần-chessstate)
+    - [3.7.3. Ví dụ và đặc điểm](#373-ví-dụ-và-đặc-điểm)
+  - [3.8. Thuật toán Alpha-Beta](#38-thuật-toán-alpha-beta)
+    - [3.8.1. Cài đặt](#381-cài-đặt)
+    - [3.8.2. Thứ tự nước đi trong Alpha-Beta thuần](#382-thứ-tự-nước-đi-trong-alpha-beta-thuần)
+    - [3.8.3. Ví dụ: vết chạy trên cây giáo trình](#383-ví-dụ-vết-chạy-trên-cây-giáo-trình)
+    - [3.8.4. Đặc điểm trong ứng dụng](#384-đặc-điểm-trong-ứng-dụng)
+  - [3.9. Thuật toán Alpha-Beta cải tiến](#39-thuật-toán-alpha-beta-cải-tiến)
+    - [3.9.1. Tổng quan và cấu trúc lớp](#391-tổng-quan-và-cấu-trúc-lớp)
+    - [3.9.2. Vòng lặp chính và các điểm can thiệp](#392-vòng-lặp-chính-và-các-điểm-can-thiệp)
+    - [3.9.3. Tìm kiếm sâu dần và quản lý thời gian](#393-tìm-kiếm-sâu-dần-và-quản-lý-thời-gian)
+    - [3.9.4. Trước khi duyệt một nút: `known`](#394-trước-khi-duyệt-một-nút-known)
+    - [3.9.5. Bảng chuyển vị và khoá Zobrist](#395-bảng-chuyển-vị-và-khoá-zobrist)
+    - [3.9.6. Sắp xếp nước đi: `actions`](#396-sắp-xếp-nước-đi-actions)
+    - [3.9.7. Sinh nước giả hợp lệ: `legal`](#397-sinh-nước-giả-hợp-lệ-legal)
+    - [3.9.8. Nút lá: tìm kiếm tĩnh](#398-nút-lá-tìm-kiếm-tĩnh)
+    - [3.9.9. Khi quay lui: `cutoffBy` và `searched`](#399-khi-quay-lui-cutoffby-và-searched)
+    - [3.9.10. So sánh bốn thuật toán trong mã nguồn](#3910-so-sánh-bốn-thuật-toán-trong-mã-nguồn)
+  - [3.10. Máy chơi, cấp độ và lựa chọn thuật toán](#310-máy-chơi-cấp-độ-và-lựa-chọn-thuật-toán)
+  - [3.11. Kiểm thử và kiểm chứng](#311-kiểm-thử-và-kiểm-chứng)
+  - [3.12. Giao diện ứng dụng (hình ảnh demo)](#312-giao-diện-ứng-dụng-hình-ảnh-demo)
+- [**CHƯƠNG 4. THỬ NGHIỆM VÀ ĐÁNH GIÁ**](#chương-4-thử-nghiệm-và-đánh-giá)
+  - [4.1. Môi trường thử nghiệm](#41-môi-trường-thử-nghiệm)
+  - [4.2. Minimax, Negamax và Alpha-Beta](#42-minimax-negamax-và-alpha-beta)
+  - [4.3. Alpha-Beta cải tiến theo độ sâu](#43-alpha-beta-cải-tiến-theo-độ-sâu)
+  - [4.4. Alpha-Beta thuần và Alpha-Beta cải tiến ở cùng độ sâu](#44-alpha-beta-thuần-và-alpha-beta-cải-tiến-ở-cùng-độ-sâu)
+  - [4.5. Hiệu năng theo cấp độ](#45-hiệu-năng-theo-cấp-độ)
+  - [4.6. Đấu thử giữa các thuật toán](#46-đấu-thử-giữa-các-thuật-toán)
+  - [4.7. Đánh giá chung](#47-đánh-giá-chung)
+- [**CHƯƠNG 5. KẾT LUẬN VÀ HƯỚNG PHÁT TRIỂN**](#chương-5-kết-luận-và-hướng-phát-triển)
+  - [5.1. Kết luận](#51-kết-luận)
+  - [5.2. Hướng phát triển](#52-hướng-phát-triển)
+- [**TÀI LIỆU THAM KHẢO**](#tài-liệu-tham-khảo)
+
+<!-- /toc -->
 
 # LỜI MỞ ĐẦU
 
@@ -1194,6 +1293,8 @@ Vì gói `chess` và lõi `ai` là Java thuần, chúng được biên dịch v�
 
 Các hình dưới đây chụp trên máy ảo Android 15 (độ phân giải 1440 × 3120), phần thanh trạng thái và dải quảng cáo thử nghiệm ở đầu màn hình chơi đã được cắt bỏ. Trong ứng dụng, thuật toán Alpha-Beta cải tiến mang tên **"Engine tối ưu"**; ba thuật toán còn lại là **"Minimax thuần"**, **"Negamax thuần"** và **"Alpha-Beta thuần"**.
 
+**Video demo.** Toàn bộ quá trình sử dụng ứng dụng — chọn thuật toán, chọn cấp độ, chơi một ván với máy — được quay lại trong video demo tại: https://www.youtube.com/watch?v=UyCF-ykqvng.
+
 **Chọn thuật toán và cấp độ.** Màn hình chính (Hình 3.1) có bốn thẻ: *Máy (Đỏ)* — cấp độ của máy; *Bàn cờ* — bảng màu của bàn và quân; *Thuật toán*; *Lượt đi* — ai đi trước. Chạm vào thẻ *Thuật toán* mở hộp thoại chọn một trong bốn thuật toán (Hình 3.2); chạm vào thẻ *Máy* mở hộp thoại chọn cấp độ (Hình 3.3). Lựa chọn được lưu lại và áp dụng từ ván sau.
 
 | ![Màn hình chính](images/01_man_hinh_chinh.jpg) | ![Chọn thuật toán](images/02_chon_thuat_toan.jpg) | ![Chọn cấp độ](images/03_chon_cap_do.jpg) |
@@ -1412,3 +1513,4 @@ Alpha-Beta cải tiến thắng cả 4 ván bằng chiếu bí, ở cả hai mà
 7. L. V. Allis, *Searching for Solutions in Games and Artificial Intelligence*, PhD thesis, University of Limburg, 1994.
 8. Chess Programming Wiki — các mục Negamax, Alpha-Beta, Quiescence Search, Transposition Table, Null Move Pruning, Killer Heuristic, History Heuristic: https://www.chessprogramming.org
 9. Mã nguồn đề tài: https://github.com/khoiln218/ChessAndroid
+10. Video demo ứng dụng: https://www.youtube.com/watch?v=UyCF-ykqvng

@@ -8,3 +8,5 @@
 /captures
 key.properties
 /.idea/markdown.xml
+# File khóa tạm của Office (Excel, Word đang mở)
+~$*
