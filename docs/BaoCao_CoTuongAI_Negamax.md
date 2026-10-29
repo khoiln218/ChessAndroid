@@ -33,6 +33,8 @@ TP.HCM, tháng 10/2026
 **MỤC LỤC**
 
 - [**LỜI MỞ ĐẦU**](#lời-mở-đầu)
+- [**PHÂN CÔNG NHIỆM VỤ**](#phân-công-nhiệm-vụ)
+- [**MÃ NGUỒN VÀ VIDEO DEMO**](#mã-nguồn-và-video-demo)
 - [**CHƯƠNG 1. TỔNG QUAN ĐỀ TÀI**](#chương-1-tổng-quan-đề-tài)
   - [1.1. Giới thiệu trò chơi Cờ Tướng](#11-giới-thiệu-trò-chơi-cờ-tướng)
   - [1.2. Mô hình hoá Cờ Tướng thành bài toán Trí tuệ nhân tạo](#12-mô-hình-hoá-cờ-tướng-thành-bài-toán-trí-tuệ-nhân-tạo)
@@ -59,13 +61,13 @@ TP.HCM, tháng 10/2026
     - [2.4.5. Độ phức tạp](#245-độ-phức-tạp)
   - [2.5. Hàm đánh giá tĩnh](#25-hàm-đánh-giá-tĩnh)
   - [2.6. Alpha-Beta cải tiến: các bài toán khi áp dụng vào thực tế và kỹ thuật giải quyết](#26-alpha-beta-cải-tiến-các-bài-toán-khi-áp-dụng-vào-thực-tế-và-kỹ-thuật-giải-quyết)
-    - [2.6.1. Hiệu ứng đường chân trời → Tìm kiếm tĩnh (Quiescence Search)](#261-hiệu-ứng-đường-chân-trời--tìm-kiếm-tĩnh-quiescence-search)
-    - [2.6.2. Thứ tự nước đi → MVV-LVA, nước sát thủ, heuristic lịch sử, nước từ bảng băm](#262-thứ-tự-nước-đi--mvv-lva-nước-sát-thủ-heuristic-lịch-sử-nước-từ-bảng-băm)
-    - [2.6.3. Trạng thái lặp lại (transposition) → Bảng chuyển vị với khoá Zobrist](#263-trạng-thái-lặp-lại-transposition--bảng-chuyển-vị-với-khoá-zobrist)
-    - [2.6.4. Giới hạn thời gian → Tìm kiếm sâu dần (Iterative Deepening)](#264-giới-hạn-thời-gian--tìm-kiếm-sâu-dần-iterative-deepening)
-    - [2.6.5. Cắt tỉa tiến → Null-move Pruning và bài toán Zugzwang](#265-cắt-tỉa-tiến--null-move-pruning-và-bài-toán-zugzwang)
-    - [2.6.6. Chọn đường chiếu hết ngắn nhất → Điểm chiếu hết theo khoảng cách](#266-chọn-đường-chiếu-hết-ngắn-nhất--điểm-chiếu-hết-theo-khoảng-cách)
-    - [2.6.7. Lặp thế cờ, chiếu mãi → Phát hiện lặp trong cây tìm kiếm](#267-lặp-thế-cờ-chiếu-mãi--phát-hiện-lặp-trong-cây-tìm-kiếm)
+    - [2.6.1. Tìm kiếm tĩnh (Quiescence Search)](#261-tìm-kiếm-tĩnh-quiescence-search)
+    - [2.6.2. Sắp xếp nước đi (MVV-LVA, nước sát thủ, heuristic lịch sử, nước từ bảng băm)](#262-sắp-xếp-nước-đi-mvv-lva-nước-sát-thủ-heuristic-lịch-sử-nước-từ-bảng-băm)
+    - [2.6.3. Bảng chuyển vị với khoá Zobrist](#263-bảng-chuyển-vị-với-khoá-zobrist)
+    - [2.6.4. Tìm kiếm sâu dần (Iterative Deepening)](#264-tìm-kiếm-sâu-dần-iterative-deepening)
+    - [2.6.5. Cắt tỉa Null-move (Null-move Pruning)](#265-cắt-tỉa-null-move-null-move-pruning)
+    - [2.6.6. Điểm chiếu hết theo khoảng cách](#266-điểm-chiếu-hết-theo-khoảng-cách)
+    - [2.6.7. Phát hiện lặp thế cờ trong cây tìm kiếm](#267-phát-hiện-lặp-thế-cờ-trong-cây-tìm-kiếm)
 - [**CHƯƠNG 3. THIẾT KẾ VÀ CÀI ĐẶT**](#chương-3-thiết-kế-và-cài-đặt)
   - [3.1. Kiến trúc tổng thể](#31-kiến-trúc-tổng-thể)
     - [3.1.1. Các gói và vai trò](#311-các-gói-và-vai-trò)
@@ -118,6 +120,20 @@ TP.HCM, tháng 10/2026
 - [**TÀI LIỆU THAM KHẢO**](#tài-liệu-tham-khảo)
 
 <!-- /toc -->
+
+# PHÂN CÔNG NHIỆM VỤ
+
+| STT | Họ và tên | MSSV | Nhiệm vụ |
+| --- | --- | --- | --- |
+| 1. | Lê Ngọc Khôi (trưởng nhóm) | B24DTCN061 | Luật cờ tướng (chess/), giao diện ứng dụng Android (view/, theme/), hàm đánh giá (Evaluation), khung tìm kiếm dùng chung (GameState, GameSearch), thuật toán Minimax; quản lý repository GitHub; tổng hợp báo cáo |
+| 2. | Phạm Tuấn Anh | B24DTCN057 | Cài đặt thuật toán Negamax và Alpha-Beta thuần; kiểm thử; viết báo cáo phần tương ứng |
+| 3. | Phạm Phước Hòa | B24DTCN060 | Thuật toán Alpha-Beta cải tiến (ai/optimize/: tìm kiếm sâu dần, bảng chuyển vị Zobrist, null-move, quiescence); đo đạc và đấu thử giữa các thuật toán; quay video demo; viết báo cáo phần tương ứng |
+
+# MÃ NGUỒN VÀ VIDEO DEMO
+
+**Mã nguồn (GitHub):** [https://github.com/khoiln218/ChessAndroid](https://github.com/khoiln218/ChessAndroid)
+
+**Video demo:** [https://www.youtube.com/watch?v=UyCF-ykqvng](https://www.youtube.com/watch?v=UyCF-ykqvng) hoặc thư mục docs/video
 
 # LỜI MỞ ĐẦU
 
@@ -448,7 +464,7 @@ trong đó các đặc trưng thường dùng cho cờ tướng là: **giá tr�
 
 Alpha-Beta thuần tuý vẫn còn nhiều hạn chế khi áp dụng vào một trò chơi thực tế. Mục này trình bày từng bài toán cùng kỹ thuật giải quyết được dùng trong thuật toán **Alpha-Beta cải tiến** của đề tài (cài đặt ở mục 3.9).
 
-### 2.6.1. Hiệu ứng đường chân trời → Tìm kiếm tĩnh (Quiescence Search)
+### 2.6.1. Tìm kiếm tĩnh (Quiescence Search)
 
 **Bài toán.** Khi dừng tìm kiếm tại độ sâu cố định, thuật toán đánh giá thế cờ ngay cả khi đang giữa một cuộc đổi quân. Ví dụ: ở ply cuối, Xe ăn một Tốt được bảo vệ — hàm đánh giá thấy "được thêm một Tốt", nhưng nước tiếp theo (nằm ngoài "đường chân trời" tìm kiếm) đối phương ăn lại Xe. AI sẽ đánh giá sai hoàn toàn và chủ động đi những nước thí quân vô lý. Đây gọi là **hiệu ứng đường chân trời (horizon effect)**.
 
@@ -469,7 +485,7 @@ function QUIESCE(s, α, β):
 
 Giá trị **stand-pat** là cận dưới vì bên đi luôn có quyền không ăn quân. **Cắt delta (delta pruning)**: nếu ngay cả khi ăn được quân đó cộng thêm một biên an toàn vẫn không đạt α thì bỏ qua nước ăn này và các nước sau (vì đã sắp theo giá trị quân bị ăn giảm dần).
 
-### 2.6.2. Thứ tự nước đi → MVV-LVA, nước sát thủ, heuristic lịch sử, nước từ bảng băm
+### 2.6.2. Sắp xếp nước đi (MVV-LVA, nước sát thủ, heuristic lịch sử, nước từ bảng băm)
 
 **Bài toán.** Như phân tích ở mục 2.4.5, hiệu quả của Alpha-Beta phụ thuộc hoàn toàn vào việc nước tốt nhất có được xét sớm hay không. Nếu các nước được xét theo thứ tự sinh ra (quét bàn cờ từ trên xuống), Alpha-Beta gần như suy biến về Minimax.
 
@@ -484,7 +500,7 @@ Giá trị **stand-pat** là cận dưới vì bên đi luôn có quyền không
 
 Riêng MVV-LVA (ưu tiên 2) là đủ đơn giản để dùng cả cho Alpha-Beta thuần: trong đề tài, Alpha-Beta thuần nhận các nước đã được sắp ăn quân lên trước ngay từ khi sinh (mục 3.8.2).
 
-### 2.6.3. Trạng thái lặp lại (transposition) → Bảng chuyển vị với khoá Zobrist
+### 2.6.3. Bảng chuyển vị với khoá Zobrist
 
 **Bài toán.** Cùng một thế cờ có thể đạt được bằng nhiều thứ tự nước đi khác nhau (ví dụ: Xe đi trước rồi Mã, hoặc Mã đi trước rồi Xe). Cây trò chơi thực chất là một **đồ thị**, và Negamax thuần sẽ duyệt lại cùng một cây con nhiều lần.
 
@@ -499,13 +515,13 @@ Khoá của thế cờ được tính bằng **băm Zobrist** (Zobrist, 1970): s
 key ← key ⊕ Z[from][piece] ⊕ Z[to][piece] ⊕ Z[to][captured] ⊕ Z_side
 ```
 
-### 2.6.4. Giới hạn thời gian → Tìm kiếm sâu dần (Iterative Deepening)
+### 2.6.4. Tìm kiếm sâu dần (Iterative Deepening)
 
 **Bài toán.** Thời gian tìm kiếm tăng theo hàm mũ với độ sâu và thay đổi mạnh theo từng thế cờ. Nếu cố định độ sâu, có thế cờ máy trả lời tức thì, có thế cờ máy "treo" hàng phút. Nếu đặt giới hạn thời gian cho một lần tìm cố định độ sâu, khi hết giờ giữa chừng ta không có kết quả nào đáng tin.
 
 **Giải pháp.** Lần lượt chạy tìm kiếm với độ sâu 1, 2, 3, ... cho tới khi hết thời gian hoặc đạt độ sâu tối đa; luôn giữ lại kết quả của **lần lặp gần nhất đã hoàn thành**. Chi phí lặp lại các độ sâu nông là nhỏ (tổng chi phí các lần lặp trước chỉ bằng một phần nhỏ lần lặp cuối), và còn được bù lại: nước tốt nhất của lần lặp trước được xét đầu tiên ở lần lặp sau, và bảng chuyển vị/killer/history đã "học" được từ các lần trước — giúp cắt tỉa nhiều hơn hẳn.
 
-### 2.6.5. Cắt tỉa tiến → Null-move Pruning và bài toán Zugzwang
+### 2.6.5. Cắt tỉa Null-move (Null-move Pruning)
 
 **Bài toán.** Alpha-Beta là cắt tỉa *lùi* (backward pruning) — an toàn tuyệt đối nhưng giới hạn ở O(b^(d/2)). Muốn nhìn sâu hơn cần mạnh dạn bỏ qua các nhánh "gần như chắc chắn" vô ích.
 
@@ -513,13 +529,13 @@ key ← key ⊕ Z[from][piece] ⊕ Z[to][piece] ⊕ Z[to][captured] ⊕ Z_side
 
 Giả định đó **sai** trong các thế **zugzwang** — mọi nước đi đều làm thế cờ xấu đi. Vì vậy null-move chỉ được dùng khi: bên đi không bị chiếu (bị chiếu thì không thể bỏ lượt), bên đi còn quân mạnh (Xe/Mã/Pháo — thế chỉ còn Tướng, Sĩ, Tượng, Tốt dễ rơi vào zugzwang), nút đủ sâu để khoản tiết kiệm lớn hơn chi phí thử, và nút không phải là nút vừa bỏ lượt (không bỏ lượt hai lần liên tiếp).
 
-### 2.6.6. Chọn đường chiếu hết ngắn nhất → Điểm chiếu hết theo khoảng cách
+### 2.6.6. Điểm chiếu hết theo khoảng cách
 
 **Bài toán.** Nếu mọi thế bị chiếu hết đều có cùng điểm −∞, AI không phân biệt được "chiếu hết sau 2 nước" và "chiếu hết sau 6 nước"; nó có thể lòng vòng mãi không kết thúc ván, hoặc khi thua thì không cố kéo dài.
 
 **Giải pháp.** Điểm của thế bị chiếu hết là **−(WIN − ply)** với ply là khoảng cách tới gốc. Chiếu hết càng sớm, điểm (đối với bên thắng) càng cao. Khi lưu vào bảng chuyển vị, điểm chiếu hết được quy đổi về khoảng cách tính từ chính thế cờ đó (không phải từ gốc), và quy đổi ngược lại khi đọc ra. Cả ba thuật toán của đề tài đều chấm điểm thế thua theo khoảng cách; riêng việc quy đổi khi lưu bảng chỉ cần cho thuật toán cải tiến.
 
-### 2.6.7. Lặp thế cờ, chiếu mãi → Phát hiện lặp trong cây tìm kiếm
+### 2.6.7. Phát hiện lặp thế cờ trong cây tìm kiếm
 
 **Bài toán.** Negamax giả định cây là hữu hạn và không có chu trình. Trong thực tế, một bên có thể chiếu qua chiếu lại vô hạn; nếu không xử lý, AI có thể đánh giá một chuỗi chiếu vô tận là "thắng", hoặc đi tới đi lui một quân vì không tìm ra nước nào tốt hơn.
 
@@ -1512,5 +1528,3 @@ Alpha-Beta cải tiến thắng cả 4 ván bằng chiếu bí, ở cả hai mà
 6. J. Schaeffer, "The History Heuristic and Alpha-Beta Search Enhancements in Practice", *IEEE Transactions on Pattern Analysis and Machine Intelligence*, vol. 11, no. 11, 1989.
 7. L. V. Allis, *Searching for Solutions in Games and Artificial Intelligence*, PhD thesis, University of Limburg, 1994.
 8. Chess Programming Wiki — các mục Negamax, Alpha-Beta, Quiescence Search, Transposition Table, Null Move Pruning, Killer Heuristic, History Heuristic: https://www.chessprogramming.org
-9. Mã nguồn đề tài: https://github.com/khoiln218/ChessAndroid
-10. Video demo ứng dụng: https://www.youtube.com/watch?v=UyCF-ykqvng
